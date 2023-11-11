@@ -1,0 +1,13 @@
+.DS_Store
+.vs/
+hexstr-c
+hexstr-intrin
+hexstr-a64
+hexstr-neon
+hexstr-x64
+hexstr-sse
+a.out
+*.exe
+*.o
+*.obj
+
