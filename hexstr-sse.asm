@@ -135,8 +135,8 @@ ascii0      byte    16 dup('0')
 ascii9      byte    16 dup('9')
 af          byte    16 dup('A' - '0' - 10)  ; val+'0' to val+'A'
 lo          byte    16 dup(0fh)
-swap16      byte    1,    0,    0x80, 0x80, 0x80, 0x80, 0x80, 0x80
-            byte    0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
+swap16      byte    1,   0,   80h, 80h, 80h, 80h, 80h, 80h
+            byte    80h, 80h, 80h, 80h, 80h, 80h, 80h, 80h
 
 lookup      byte    "0123456789ABCDEF"
 
