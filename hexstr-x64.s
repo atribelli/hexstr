@@ -1,26 +1,28 @@
-// hexstr-x64.s
-//
-// Convert values of various sizes to zero terminated hex strings.
-//     u64ToHexStr   64-bit quad word
-//     u32ToHexStr   32-bit double word
-//     u16ToHexStr   16-bit word
-//     u8ToHexStr    8-bit  byte
-//     u4ToHexStr    4-bit  nibble
+# hexstr-x64.s
+#
+# Convert values of various sizes to zero terminated hex strings.
+#     u64ToHexStr   64-bit quad word
+#     u32ToHexStr   32-bit double word
+#     u16ToHexStr   16-bit word
+#     u8ToHexStr    8-bit  byte
+#     u4ToHexStr    4-bit  nibble
 
             .intel_syntax noprefix
 
             .text
             .align  2
+            .global u64ToHexStr, u32ToHexStr, u16ToHexStr
+            .global u8ToHexStr, u4ToHexStr
             .global _u64ToHexStr, _u32ToHexStr, _u16ToHexStr
             .global _u8ToHexStr, _u4ToHexStr
 
-//-----------------------------------------------------------------------------
-// Comment/uncomment these symbol definition to control implementation
-// of code.
-//
-// use_table allows table lookup rather than computation of chars.
-// use_bytes allows individuals bytes to be output rather than collected
-// in a register to be output as a word later.
+#-----------------------------------------------------------------------------
+# Comment/uncomment these symbol definition to control implementation
+# of code.
+#
+# use_table allows table lookup rather than computation of chars.
+# use_bytes allows individuals bytes to be output rather than collected
+# in a register to be output as a word later.
 
             .set    use_table, 1
             .set    use_bytes, 1
@@ -36,54 +38,54 @@
             .print  "Conditional Assembly: Output words"
             .endif
 
-//-----------------------------------------------------------------------------
-// Macros with the code for different implementations.
-// Table vs compute, bytes vs words.
-// What works best depends on the architecture, these allow us to easily test.
-// Arguments:
-//     RDI  Buffer if use_bytes defined
-//     RAX  Current digits if use_bytes not defined
-//     RCX  Value
-//     RDX  Lookup table if use_table defined
-//     i    Next position in buffer if use_bytes defined
-// Return:
-//     RDI  Buffer has new digit if use_bytes defined
-//     RAX  Cuurrent digits shifted left if use_bytes not defined
-//     AL   New digit
+#-----------------------------------------------------------------------------
+# Macros with the code for different implementations.
+# Table vs compute, bytes vs words.
+# What works best depends on the architecture, these allow us to easily test.
+# Arguments:
+#     RDI  Buffer if use_bytes defined
+#     RAX  Current digits if use_bytes not defined
+#     RCX  Value
+#     RDX  Lookup table if use_table defined
+#     i    Next position in buffer if use_bytes defined
+# Return:
+#     RDI  Buffer has new digit if use_bytes defined
+#     RAX  Cuurrent digits shifted left if use_bytes not defined
+#     AL   New digit
 
-            // These macros are not used directly,
-            // one of them will be used in nextDigit
+            # These macros are not used directly,
+            # one of them will be used in nextDigit
 
             .macro  tableBytes, i
-            mov     al, [rdx + rcx]         // Get the next digit
-            mov     [rdi + \i], al          // Output the digit
+            mov     al, [rdx + rcx]         # Get the next digit
+            mov     [rdi + \i], al          # Output the digit
             .endm
 
             .macro  tableWords
-            shl     rax, 8                  // Shift the current digits
-            mov     al, [rdx + rcx]         // Get the next digit
+            shl     rax, 8                  # Shift the current digits
+            mov     al, [rdx + rcx]         # Get the next digit
             .endm
 
             .macro  computeBytes, i
-            mov     eax, ecx                // Convert value to 0-9
+            mov     eax, ecx                # Convert value to 0-9
             add     eax, '0'
-            add     ecx, 'A' - 10           // Convert value to A-F
-            cmp     al, '9'                 // Verify 0-9
-            cmovg   eax, ecx                // Switch to A-F
-            mov     [rdi + \i], al          // Output the digit
+            add     ecx, 'A' - 10           # Convert value to A-F
+            cmp     al, '9'                 # Verify 0-9
+            cmovg   eax, ecx                # Switch to A-F
+            mov     [rdi + \i], al          # Output the digit
             .endm
 
             .macro  computeWords
-            shl     rax, 8                  // Shift the current digits
-            mov     edx, ecx                // Convert value to A-F
+            shl     rax, 8                  # Shift the current digits
+            mov     edx, ecx                # Convert value to A-F
             add     edx, 'A' - 10
-            add     ecx, '0'                // Convert value to 0-9
-            cmp     cl, '9'                 // Verify 0-9
-            cmovg   ecx, edx                // Switch to A-F
-            mov     al, cl                  // Output the digit
+            add     ecx, '0'                # Convert value to 0-9
+            cmp     cl, '9'                 # Verify 0-9
+            cmovg   ecx, edx                # Switch to A-F
+            mov     al, cl                  # Output the digit
             .endm
 
-            // The nextDigit macro will be used by the code below
+            # The nextDigit macro will be used by the code below
 
             .macro  nextDigit, i
             .ifdef  use_table
@@ -101,24 +103,25 @@
             .endif
             .endm
 
-//-----------------------------------------------------------------------------
-// Convert value to zero terminated hex string.
-// Arguments:
-//     RDI  Buffer, assumed to be large enough for string and null terminator
-//     RSI  Value
-// Return:
-//     RAX  Buffer
-//
-// We are going to start at the high order nibble
-// and work down one at a time to the low order nibble.
+#-----------------------------------------------------------------------------
+# Convert value to zero terminated hex string.
+# Arguments:
+#     RDI  Buffer, assumed to be large enough for string and null terminator
+#     RSI  Value
+# Return:
+#     RAX  Buffer
+#
+# We are going to start at the high order nibble
+# and work down one at a time to the low order nibble.
 
             .align  4
+u64ToHexStr:
 _u64ToHexStr:
             .ifdef  use_table
-            lea     rdx, lookup[rip]        // Converts binary to char
+            lea     rdx, lookup[rip]        # Converts binary to char
             .endif
 
-            mov     rcx, rsi                // Get the nibble to convert
+            mov     rcx, rsi                # Get the nibble to convert
             shr     rcx, 60
             nextDigit 0
 
@@ -158,7 +161,7 @@ _u64ToHexStr:
             nextDigit 7
 
             .ifndef use_bytes
-            bswap   rax                     // Output HO digits
+            bswap   rax                     # Output HO digits
             mov     [rdi], rax
             .endif
 
@@ -202,23 +205,24 @@ _u64ToHexStr:
             nextDigit 15
 
             .ifndef use_bytes
-            bswap   rax                     // Output LO digits
+            bswap   rax                     # Output LO digits
             mov     [rdi + 8], rax
             .endif
 
-            mov     byte ptr [rdi + 16], 0  // Zero terminte string
-            mov     rax, rdi                // Return original pointer
+            mov     byte ptr [rdi + 16], 0  # Zero terminte string
+            mov     rax, rdi                # Return original pointer
             ret
 
-//-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
             .align  4
+u32ToHexStr:
 _u32ToHexStr:
             .ifdef  use_table
-            lea     rdx, lookup[rip]        // Converts binary to char
+            lea     rdx, lookup[rip]        # Converts binary to char
             .endif
 
-            mov     ecx, esi                // Get the nibble to convert
+            mov     ecx, esi                # Get the nibble to convert
             shr     ecx, 28
             and     rcx, 0xf
             nextDigit 0
@@ -258,23 +262,24 @@ _u32ToHexStr:
             nextDigit 7
 
             .ifndef use_bytes
-            bswap   rax                     // Output digits
+            bswap   rax                     # Output digits
             mov     [rdi], rax
             .endif
 
-            mov     byte ptr [rdi + 8], 0   // Zero terminte string
-            mov     rax, rdi                // Return original pointer
+            mov     byte ptr [rdi + 8], 0   # Zero terminte string
+            mov     rax, rdi                # Return original pointer
             ret
 
-//-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
             .align  4
+u16ToHexStr:
 _u16ToHexStr:
             .ifdef  use_table
-            lea     rdx, lookup[rip]        // Converts binary to char
+            lea     rdx, lookup[rip]        # Converts binary to char
             .endif
 
-            mov     ecx, esi                // Get the nibble to convert
+            mov     ecx, esi                # Get the nibble to convert
             shr     ecx, 12
             and     rcx, 0xf
             nextDigit 0
@@ -294,23 +299,24 @@ _u16ToHexStr:
             nextDigit 3
 
             .ifndef use_bytes
-            bswap   eax                     // Output digits
+            bswap   eax                     # Output digits
             mov     [rdi], eax
             .endif
 
-            mov     byte ptr [rdi + 4], 0   // Zero terminte string
-            mov     rax, rdi                // Return original pointer
+            mov     byte ptr [rdi + 4], 0   # Zero terminte string
+            mov     rax, rdi                # Return original pointer
             ret
 
-//-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
             .align  4
+u8ToHexStr:
 _u8ToHexStr:
             .ifdef  use_table
-            lea     rdx, lookup[rip]        // Converts binary to char
+            lea     rdx, lookup[rip]        # Converts binary to char
             .endif
 
-            mov     ecx, esi                // Get the nibble to convert
+            mov     ecx, esi                # Get the nibble to convert
             shr     ecx, 4
             and     rcx, 0xf
             nextDigit 0
@@ -324,19 +330,20 @@ _u8ToHexStr:
             mov     [rdi + 1], al
             .endif
 
-            mov     byte ptr [rdi + 2], 0   // Zero terminte string
-            mov     rax, rdi                // Return original pointer
+            mov     byte ptr [rdi + 2], 0   # Zero terminte string
+            mov     rax, rdi                # Return original pointer
             ret
 
-//-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
             .align  4
+u4ToHexStr:
 _u4ToHexStr:
             .ifdef  use_table
-            lea     rdx, lookup[rip]        // Converts binary to char
+            lea     rdx, lookup[rip]        # Converts binary to char
             .endif
 
-            mov     ecx, esi                // Get the nibble to convert
+            mov     ecx, esi                # Get the nibble to convert
             and     rcx, 0xf
             nextDigit 0
 
@@ -344,11 +351,11 @@ _u4ToHexStr:
             mov     [rdi], al
             .endif
 
-            mov     byte ptr [rdi + 1], 0   // Zero terminte string
-            mov     rax, rdi                // Return original pointer
+            mov     byte ptr [rdi + 1], 0   # Zero terminte string
+            mov     rax, rdi                # Return original pointer
             ret
 
-//-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
             .align  4
 
