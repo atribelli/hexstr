@@ -76,7 +76,8 @@ int main (int argc, char *argv[]) {
          <<  u4ToHexStr(buffer2, value2) << endl;
     cout << flush;
 
-    cout << setprecision(2)
+    cout << fixed
+         << setprecision(2)
          << "u64: " << elapsed64.count() << " sec" << endl
          << "u32: " << elapsed32.count() << " sec" << endl
          << "u16: " << elapsed16.count() << " sec" << endl
