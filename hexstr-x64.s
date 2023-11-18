@@ -9,6 +9,10 @@
 
             .intel_syntax noprefix
 
+            .ifdef  IsLinux
+            .section .note.GNU-stack,"",%progbits
+            .endif
+
             .text
             .align  2
             .global u64ToHexStr, u32ToHexStr, u16ToHexStr
