@@ -50,7 +50,7 @@ hexstr-neon.o: hexstr-neon.s
 
 # Intel assembly language code
 
-intel: hexstr-x64 hexstr-sse
+intel: hexstr-x64 hexstr-sse hexstr-avx
 
 hexstr-x64: main.o hexstr-x64.o
 	g++ -o hexstr-x64 -std=$(stdcpp) $(optcpp) main.o hexstr-x64.o
@@ -64,7 +64,13 @@ hexstr-sse: main.o hexstr-sse.o
 hexstr-sse.o: hexstr-sse.s
 	as -o hexstr-sse.o $(optas) hexstr-sse.s
 
+hexstr-avx: main.o hexstr-avx.o
+	g++ -o hexstr-avx -std=$(stdcpp) $(optcpp) main.o hexstr-avx.o
+
+hexstr-avx.o: hexstr-avx.s
+	as -o hexstr-avx.o $(optas) hexstr-avx.s
+
 # Quietly clean up
 
 clean:
-	rm -f hexstr-c hexstr-intrin hexstr-a64 hexstr-neon hexstr-x64 hexstr-sse a.out *.o
+	rm -f hexstr-c hexstr-intrin hexstr-a64 hexstr-neon hexstr-x64 hexstr-sse hexstr-avx a.out *.o

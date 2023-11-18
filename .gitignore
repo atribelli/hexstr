@@ -6,6 +6,7 @@ hexstr-a64
 hexstr-neon
 hexstr-x64
 hexstr-sse
+hexstr-avx
 a.out
 *.exe
 *.o
