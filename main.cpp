@@ -27,6 +27,10 @@ int main (int argc, char *argv[]) {
         cout << "Requires SSSE3 support" << endl;
         return 1;
     }
+    if (! (__builtin_cpu_supports("avx"))) {
+        cout << "Requires AVX support" << endl;
+        return 1;
+    }
 #else
 #endif
 

@@ -37,8 +37,7 @@
             vpunpcklbw xmm0, xmm1, xmm0     # Interleave the HO and LO nibbles
 
             vpor    xmm0, xmm0, ascii0[rip] # Convert binary to ascii
-            vmovdqa xmm1, xmm0              # Determine which bytes should be A-F
-            vpcmpgtb xmm1, xmm1, ascii9[rip]
+            vpcmpgtb xmm1, xmm0, ascii9[rip] # Determine which bytes should be A-F
 
             vpand    xmm1, xmm1, af[rip]    # Update bytes that should be A-F
             vpaddb   xmm0, xmm0, xmm1

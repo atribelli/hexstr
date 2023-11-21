@@ -15,6 +15,7 @@ hexstr.h - Prototypes for hex string conversion functions.
 hexstr.c - C and SSE and NEON intrinsic implementations.  
 hexstr-x64.s - x86-64 assembly implementation (gas).  
 hexstr-sse.s - SSE implementation (gas).  
+hexstr-avx.s - AVX implementation (gas).  
 hexstr-a64.s - AArch64 assembly implementation.  
 hexstr-neon.s - NEON implementation.    
 hexstr-x64.asm - x86-64 assembly implementation (masm).  
