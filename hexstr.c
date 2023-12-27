@@ -12,12 +12,34 @@
 //     u4ToHexStr    4-bit  nibble
 
 #if   defined(USE_SIMD) && defined(__aarch64__)
+
 #include <arm_neon.h>
+
+#elif defined(USE_SIMD) && defined(__arm__)
+
+#include <arm_neon.h>
+
+// Use unions to access the first element of a double element data type
+
+union uint8x16 {
+    uint8x16x2_t    x2;
+    uint8x16_t      x1;
+};
+
+union uint8x8 {
+    uint8x8x2_t x2;
+    uint8x8_t   x1;
+};
+
 #elif defined(USE_SIMD) && (defined(__x86_64__) || defined(_M_X64))
+
 #include <immintrin.h>
+
 #endif
 
 #include "hexstr.h"
+
+
 
 const uint8_t convert0toA = 'A' - '0' - 10;     // val+'0' to val+'A'
 const uint8_t invert0ToA  = ~('A' - '0' - 10);  // Invert the bits for BIC
@@ -38,10 +60,12 @@ static uint8_t    ho      = 0xF0;
 
 const char *lookup = "0123456789ABCDEF";
 
+
+
 const char *u64ToHexStr(char *buffer, uint64_t value) {
 #if defined(USE_SIMD) && defined(__aarch64__)
     
-    // ARM NEON Intrinsics
+    // ARM NEON 64 Intrinsics
 
     uint8x16_t string, temp, clear;
 
@@ -65,6 +89,34 @@ const char *u64ToHexStr(char *buffer, uint64_t value) {
     string = vaddq_u8(string, temp);
 
     vst1q_u8((uint8_t *) buffer, string);   // Output the string
+
+#elif defined(USE_SIMD) && defined(__arm__)
+    
+    // ARM NEON 32 Intrinsics
+
+    union uint8x16  string;
+    uint8x16_t      temp, clear;
+
+    value     = __builtin_bswap64(value);   // Reverse bytes to match string
+    string.x1 = vld1q_u8((uint8_t *) &value);
+    
+    temp      = vshrq_n_u8(string.x1, 4);   // Set temp   to the HO nibbles
+    clear     = vld1q_dup_u8(&ho);          // and string to the LO nibbles
+    string.x1 = vbicq_u8(string.x1, clear);
+    
+    string.x2 = vzipq_u8(temp, string.x1);  // Interleave the HO and LO nibbles
+    
+    temp      = vld1q_dup_u8(ascii0);       // Convert binary to ascii,
+    string.x1 = vorrq_u8(string.x1, temp);  // note only 0-9 will be correct
+    
+    temp      = vld1q_dup_u8(ascii9);       // Determine which bytes
+    temp      = vcgtq_u8(string.x1, temp);  // should be A-F
+    
+    clear     = vld1q_dup_u8(&invaf);       // Update bytes that should be A-F
+    temp      = vbicq_u8(temp, clear);
+    string.x1 = vaddq_u8(string.x1, temp);
+
+    vst1q_u8((uint8_t *) buffer, string.x1); // Output the string
 
 #elif defined(USE_SIMD) && (defined(__x86_64__) || defined(_M_X64))
     
@@ -126,10 +178,12 @@ const char *u64ToHexStr(char *buffer, uint64_t value) {
     return buffer;
 }
 
+
+
 const char *u32ToHexStr(char *buffer, uint32_t value) {
 #if defined(USE_SIMD) && defined(__aarch64__)
 
-    // ARM NEON Intrinsics
+    // ARM NEON 64 Intrinsics
 
     uint8x8_t string, temp, clear;
 
@@ -153,6 +207,34 @@ const char *u32ToHexStr(char *buffer, uint32_t value) {
     string = vadd_u8(string, temp);
 
     vst1_u8((uint8_t *) buffer, string);    // Output the string
+
+#elif defined(USE_SIMD) && defined(__arm__)
+    
+    // ARM NEON 32 Intrinsics
+
+    union uint8x8   string;
+    uint8x8_t       temp, clear;
+
+    value     = __builtin_bswap32(value);   // Reverse bytes to match string
+    string.x1 = vld1_u8((uint8_t *) &value);
+    
+    temp      = vshr_n_u8(string.x1, 4);    // Set temp   to the HO nibbles
+    clear     = vld1_dup_u8(&ho);           // and string to the LO nibbles
+    string.x1 = vbic_u8(string.x1, clear);
+    
+    string.x2 = vzip_u8(temp, string.x1);   // Interleave the HO and LO nibbles
+    
+    temp      = vld1_dup_u8(ascii0);        // Convert binary to ascii,
+    string.x1 = vorr_u8(string.x1, temp);   // note only 0-9 will be correct
+    
+    temp      = vld1_dup_u8(ascii9);        // Determine which bytes
+    temp      = vcgt_u8(string.x1, temp);   // should be A-F
+    
+    clear     = vld1_dup_u8(&invaf);        // Update bytes that should be A-F
+    temp      = vbic_u8(temp, clear);
+    string.x1 = vadd_u8(string.x1, temp);
+
+    vst1_u8((uint8_t *) buffer, string.x1); // Output the string
 
 #elif defined(USE_SIMD) && (defined(__x86_64__) || defined(_M_X64))
 
@@ -206,12 +288,12 @@ const char *u32ToHexStr(char *buffer, uint32_t value) {
     return buffer;
 }
 
-// For the smaller sizes just use a default C implementation
+
 
 const char *u16ToHexStr(char *buffer, uint16_t value) {
 #if defined(USE_SIMD) && defined(__aarch64__)
 
-    // ARM NEON Intrinsics
+    // ARM NEON 64 Intrinsics
 
     uint8x8_t string, temp, clear;
 
@@ -235,6 +317,34 @@ const char *u16ToHexStr(char *buffer, uint16_t value) {
     string = vadd_u8(string, temp);
 
     *(uint32_t *) buffer = vget_lane_u32(vreinterpret_u32_u8(string), 0); // Output the string
+
+#elif defined(USE_SIMD) && defined(__arm__)
+    
+    // ARM NEON 32 Intrinsics
+
+    union uint8x8   string;
+    uint8x8_t       temp, clear;
+
+    value     = __builtin_bswap16(value);   // Reverse bytes to match string
+    string.x1 = vld1_u8((uint8_t *) &value);
+    
+    temp      = vshr_n_u8(string.x1, 4);    // Set temp   to the HO nibbles
+    clear     = vld1_dup_u8(&ho);           // and string to the LO nibbles
+    string.x1 = vbic_u8(string.x1, clear);
+    
+    string.x2 = vzip_u8(temp, string.x1);   // Interleave the HO and LO nibbles
+    
+    temp      = vld1_dup_u8(ascii0);        // Convert binary to ascii,
+    string.x1 = vorr_u8(string.x1, temp);   // note only 0-9 will be correct
+    
+    temp      = vld1_dup_u8(ascii9);        // Determine which bytes
+    temp      = vcgt_u8(string.x1, temp);   // should be A-F
+    
+    clear     = vld1_dup_u8(&invaf);        // Update bytes that should be A-F
+    temp      = vbic_u8(temp, clear);
+    string.x1 = vadd_u8(string.x1, temp);
+
+    *(uint32_t *) buffer = vget_lane_u32(vreinterpret_u32_u8(string.x1), 0); // Output the string
 
 #elif defined(USE_SIMD) && (defined(__x86_64__) || defined(_M_X64))
 
@@ -284,6 +394,10 @@ const char *u16ToHexStr(char *buffer, uint16_t value) {
     return buffer;
 }
 
+
+
+// For the smaller sizes just use a default C implementation
+
 const char *u8ToHexStr(char *buffer, uint8_t  value) {
     buffer[0] = lookup[(value >>  4) & 0x0F];
     buffer[1] = lookup[ value        & 0x0F];
@@ -298,3 +412,4 @@ const char *u4ToHexStr(char *buffer, uint8_t  value) {
 
     return buffer;
 }
+
