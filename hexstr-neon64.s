@@ -1,4 +1,4 @@
-// hexstr-neon.s
+// hexstr-neon64.s
 //
 // Convert values of various sizes to zero terminated hex strings.
 //     u64ToHexStr   64-bit double word
