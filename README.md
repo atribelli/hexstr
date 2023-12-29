@@ -17,22 +17,27 @@ hexstr-x64.s - x86-64 assembly implementation (gas).
 hexstr-sse.s - SSE implementation (gas).  
 hexstr-avx.s - AVX implementation (gas).  
 hexstr-a64.s - AArch64 assembly implementation.  
-hexstr-neon.s - NEON implementation.    
+hexstr-neon64.s - AArch64 NEON implementation.    
+hexstr-a32.s - ARMv7-A assembly implementation.  
+hexstr-neon32.s - ARMv7-A NEON implementation.    
 hexstr-x64.asm - x86-64 assembly implementation (masm).  
 hexstr-sse.asm - SSE implementation (masm).  
+hexstr-avx.asm - AVX implementation (masm).  
 
 ## Building  
-make - Creates C and intrinsics based code, hexstr-c hexstr-intrin.  
-make intel - Creates assembly and SSE code, hexstr-x64 hexstr-sse.  
-make arm - Creates assembly and NEON code, hexstr-a64 hexstr-neon.  
-make clean - Removes executable and build files.  
+make - Create C and intrinsics based code, hexstr-c hexstr-intrin.  
+make intel - Create assembly and SSE code, hexstr-x64 hexstr-sse hexstr-avx.  
+make arm64 - Create AArch64 assembly and NEON code, hexstr-a64 hexstr-neon64.  
+make arm32 - Create ARMv7-A assembly and NEON code, hexstr-a32 hexstr-neon32.  
+make clean - Remove executable and build files.  
 nmake /f hexstr.mak - Create all executables for Windows.  
-nmake /f hexstr.mak clean - Removes executable and build files under Windows.  
+nmake /f hexstr.mak clean - Remove executable and build files under Windows.  
 
 ## Testing  
 Intel based Mac.  
 Windows PC.  
 Raspberry Pi 64-bit.  
+Raspberry Pi 32-bit.  
 
 ## Algorithms  
 Previous experience has shown that different algorithms may be faster depending on the underlying hardware architecture. C based implementations use unrolled table-based lookup. Assembly based implementation have four options. Table lookup or computed hex digits. Copying individual digits to the output buffer or collecting digits in a register and only copying to the output buffer when the register is full. The assembly code has a pair of symbols defined to choose these algorithm options:  
@@ -42,4 +47,4 @@ Note that the value of the defined symbol does not matter. Conditional assembly 
 
 ## To-do
 Background task - reviewing and improving the code.  
-ARM32 build.  
+
