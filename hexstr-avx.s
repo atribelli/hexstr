@@ -27,7 +27,7 @@
 # Return:
 #     XMM0 String
 # Required:
-#     SSE2
+#     AVX
 
             .macro  toHexStr
             vpsrlq  xmm1, xmm0, 4
@@ -51,7 +51,7 @@
 # Return:
 #     RAX  Buffer
 # Required:
-#      SSSE3
+#     AVX
 
             .align  4
 u64ToHexStr:
