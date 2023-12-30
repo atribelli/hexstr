@@ -43,11 +43,11 @@
 //     X2  Value
 //     X3  Lookup table if use_table defined
 //     X4  Current digits if use_bytes not defined
-//     i    Next position in buffer if use_bytes defined
+//     i   Next position in buffer if use_bytes defined
 // Return:
 //     X0  Buffer has new digit if use_bytes defined
 //     X4  Cuurrent digits shifted left if use_bytes not defined
-//     X2   New digit
+//     X2  New digit
 
             // These macros are not used directly,
             // one of them will be used in nextDigit

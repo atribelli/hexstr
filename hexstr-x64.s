@@ -10,7 +10,7 @@
             .intel_syntax noprefix
 
             .ifdef  IsLinux
-            .section .note.GNU-stack,"",%progbits
+            .section .note.GNU-stack, "", %progbits
             .endif
 
             .text
