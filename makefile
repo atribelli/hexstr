@@ -13,7 +13,7 @@ optas  =
 endif
 
 ifeq ($(longbit), 32)   # ARM-v7a is the only supported 32-bit platform
-optneon = -march=armv7-a -mfpu=neon
+optneon = -march=armv7-a -mfpu=neon-vfpv3
 else
 optneon =
 endif
@@ -29,7 +29,7 @@ hexstr-c.o: hexstr.h hexstr.c
 	gcc -o hexstr-c.o -c $(optc) hexstr.c
 
 hexstr-intrin: main.o hexstr-intrin.o
-	g++ -o hexstr-intrin $(optcpp) $(optneon) main.o hexstr-intrin.o
+	g++ -o hexstr-intrin $(optcpp) main.o hexstr-intrin.o
 
 hexstr-intrin.o: hexstr.h hexstr.c
 	gcc -o hexstr-intrin.o -c $(optc) $(optneon) -DUSE_SIMD hexstr.c
@@ -53,20 +53,20 @@ hexstr-neon64: main.o hexstr-neon64.o
 hexstr-neon64.o: hexstr-neon64.s
 	as -o hexstr-neon64.o $(optas) hexstr-neon64.s
 
-# arm32: hexstr-a32 hexstr-neon32
+// arm32: hexstr-a32 hexstr-neon32
 arm32: hexstr-neon32
 
 hexstr-a32: main.o hexstr-a32.o
-	g++ -o hexstr-a32 $(optcpp) $(optneon) main.o hexstr-a32.o
+	g++ -o hexstr-a32 $(optcpp) main.o hexstr-a32.o
 
 hexstr-a32.o: hexstr-a32.s
-	as -o hexstr-a32.o $(optas) $(optneon) hexstr-a32.s
+	as -o hexstr-a32.o $(optas) hexstr-a32.s
 
 hexstr-neon32: main.o hexstr-neon32.o
-	g++ -o hexstr-neon32 $(optcpp) $(optneon) main.o hexstr-neon32.o
+	g++ -o hexstr-neon32 $(optcpp) main.o hexstr-neon32.o
 
 hexstr-neon32.o: hexstr-neon32.s
-	as -o hexstr-neon32.o $(optas) $(optneon) hexstr-neon32.s
+	as -o hexstr-neon32.o $(optas) hexstr-neon32.s
 
 # Intel assembly language code
 

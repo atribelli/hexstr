@@ -8,6 +8,9 @@
 //     u8ToHexStr    8-bit  byte
 //     u4ToHexStr    4-bit  nibble
 
+            .arch   armv7-a
+            .fpu    neon-vfpv3
+
             .ifdef  IsLinux
             .section .note.GNU-stack, "", %progbits
             .endif
@@ -27,8 +30,6 @@
 
             .align  4
 u64ToHexStr:
-            push    { lr }
-
             rev     r2, r2                  // Reverse bytes to match string
             rev     r3, r3
             str     r2, [r0]
@@ -57,14 +58,12 @@ u64ToHexStr:
             vst1.8  { q0 }, [r0]            // Output the string
             strb    r2, [r0, #16]           // Zero-terminate string
 
-            pop     { pc }
+            bx      lr
 
 //-----------------------------------------------------------------------------
 
             .align  4
 u32ToHexStr:
-            push    { lr }
-
             rev     r1, r1                  // Reverse bytes to match string
             str     r1, [r0]
             vld1.32 { d0 }, [r0]
@@ -91,14 +90,12 @@ u32ToHexStr:
             vst1.8  { d0 }, [r0]            // Output the string
             strb    r2, [r0, #8]            // Zero-terminate string
 
-            pop     { pc }
+            bx      lr
 
 //-----------------------------------------------------------------------------
 
             .align  4
 u16ToHexStr:
-            push    { lr }
-
             rev16   r1, r1                  // Reverse bytes to match string
             strh    r1, [r0]
             vld1.16 { d0 }, [r0]
@@ -125,15 +122,13 @@ u16ToHexStr:
             vst1.32  { d0[0] }, [r0]        // Output the string
             strb    r2, [r0, #4]            // Zero-terminate string
 
-            pop     { pc }
+            bx      lr
 
 //-----------------------------------------------------------------------------
 // For the smaller sizes its better to just use table lookup and byte output
 
             .align  4
 u8ToHexStr:
-            push    { lr }
-
             adr     r2, lookup              // Get ascii from lookup table
 
             lsr     r3, r1, #4              // Position desired nibble
@@ -145,21 +140,19 @@ u8ToHexStr:
             ldrb    r3, [r2, r3]
             strh    r3, [r0, #1]            // Output digit and termination
 
-            pop     { pc }
+            bx      lr
 
 //-----------------------------------------------------------------------------
 
             .align  4
 u4ToHexStr:
-            push    { lr }
-
             adr     r2, lookup              // Get ascii from lookup table
 
             and     r3, r1, #0x0f           // Create an index
             ldrb    r3, [r2, r3]            // Lookup the digit
             strh    r3, [r0]                // and output it with termination
 
-            pop     { pc }
+            bx      lr
 
 //-----------------------------------------------------------------------------
 
