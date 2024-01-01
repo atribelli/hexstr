@@ -53,7 +53,7 @@ hexstr-neon64: main.o hexstr-neon64.o
 hexstr-neon64.o: hexstr-neon64.s
 	as -o hexstr-neon64.o $(optas) hexstr-neon64.s
 
-// arm32: hexstr-a32 hexstr-neon32
+# arm32: hexstr-a32 hexstr-neon32
 arm32: hexstr-neon32
 
 hexstr-a32: main.o hexstr-a32.o
