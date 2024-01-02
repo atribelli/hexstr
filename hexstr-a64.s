@@ -269,50 +269,36 @@ u16ToHexStr:
             ret
 
 //-----------------------------------------------------------------------------
+// For the smaller sizes its better to just use table lookup and byte output
 
             .align  4
 u8ToHexStr:
-            .ifdef  use_table
-            adr     x3, lookup              // Converts binary to char
-            .endif
+            adr     x2, lookup              // Get ascii from lookup table
 
-            lsr     w2, w1, #4
-            and     x2, x2, #0xf
-            nextDigit 0
+            lsr     x3, x1, #4              // Position desired nibble
+            and     x3, x3, #0x0f           // and create an index
+            ldrb    w3, [x2, x3]            // Lookup the ascii character
+            strb    w3, [x0]                // and output it
 
-            and     x2, x1, #0xf
-            nextDigit 1
-
-            .ifndef use_bytes
-            rev16   w4, w4
-            strh    w4, [x0]                // Output digits
-            .endif
-
-            strb    wzr, [x0, #2]           // Zero terminte string
+            and     x3, x1, #0x0f
+            ldrb    w3, [x2, x3]
+            strh    w3, [x0, #1]            // Output digit and termination
             ret
 
 //-----------------------------------------------------------------------------
 
             .align  4
 u4ToHexStr:
-            .ifdef  use_table
-            adr     x3, lookup              // Converts binary to char
-            .endif
+            adr     x2, lookup              // Get ascii from lookup table
 
-            and     x2, x1, #0xf
-            nextDigit 0
-
-            .ifndef use_bytes
-            strb    w4, [x0]                // Output digits
-            .endif
-
-            strb    wzr, [x0, #1]           // Zero terminte string
+            and     x3, x1, #0x0f           // Create an index
+            ldrb    w3, [x2, x3]            // Lookup the digit
+            strh    w3, [x0]                // and output it with termination
             ret
 
 //-----------------------------------------------------------------------------
 
             .align  4
 
-            .ifdef  use_table
 lookup:     .ascii  "0123456789ABCDEF"
-            .endif
+
