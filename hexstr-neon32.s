@@ -49,9 +49,6 @@ u64ToHexStr:
             vmov.u8 q2, #'A' - '0' - 10
             vcgt.u8 q1, q0, q1              // Determine A-F bytes
 
-            rev     r2, r2                  // Restore value
-            rev     r3, r3
-
             vand.8  q1, q1, q2              // Update A-F bytes
             movs    r1, #0
             vadd.u8 q0, q1, q0
@@ -82,8 +79,6 @@ u32ToHexStr:
             vmov.u8 d2, #'A' - '0' - 10
             vcgt.u8 d0, d1, d0              // Determine A-F bytes
 
-            rev     r1, r1                  // Restore value
-
             vand.8  d0, d0, d2              // Update A-F bytes
             movs    r2, #0
             vadd.u8 d0, d1, d0
@@ -113,8 +108,6 @@ u16ToHexStr:
 
             vmov.u8 d2, #'A' - '0' - 10
             vcgt.u8 d0, d1, d0              // Determine A-F bytes
-
-            rev     r1, r1                  // Restore value
 
             vand.8  d0, d0, d2              // Update A-F bytes
             movs    r2, #0
