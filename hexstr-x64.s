@@ -361,8 +361,9 @@ _u4ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .align  16
 
             .ifdef  use_table
 lookup:     .ascii  "0123456789ABCDEF"
             .endif
+
