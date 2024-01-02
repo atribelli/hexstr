@@ -14,7 +14,7 @@
             .endif
 
             .text
-            .align  2
+            .align  4
             .global u64ToHexStr, u32ToHexStr, u16ToHexStr
             .global u8ToHexStr, u4ToHexStr
             .global _u64ToHexStr, _u32ToHexStr, _u16ToHexStr
@@ -53,7 +53,7 @@
 # Required:
 #     AVX
 
-            .align  4
+            .align  16
 u64ToHexStr:
 _u64ToHexStr:
             bswap   rsi                     # Reverse bytes to match string
@@ -68,7 +68,7 @@ _u64ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .align  16
 u32ToHexStr:
 _u32ToHexStr:
             bswap   esi                     # Reverse bytes to match string
@@ -83,7 +83,7 @@ _u32ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .align  16
 u16ToHexStr:
 _u16ToHexStr:
             vmovd   xmm0, esi               # Reverse bytes to match string
@@ -99,7 +99,7 @@ _u16ToHexStr:
 #-----------------------------------------------------------------------------
 # For the smaller sizes its better to just use table lookup and byte output
 
-            .align  4
+            .align  16
 u8ToHexStr:
 _u8ToHexStr:
             mov     rax, rdi                # Return original pointer
@@ -120,7 +120,7 @@ _u8ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .align  16
 u4ToHexStr:
 _u4ToHexStr:
             mov     rax, rdi                # Return original pointer
@@ -146,4 +146,3 @@ swap16:     .byte   1,    0,    0x80, 0x80, 0x80, 0x80, 0x80, 0x80
             .byte   0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
 
 lookup:     .ascii  "0123456789ABCDEF"
-
