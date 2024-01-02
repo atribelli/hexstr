@@ -27,8 +27,8 @@
 // use_bytes allows individuals bytes to be output rather than collected
 // in a register to be output as a word later.
 
-//            .set    use_table, 1
-//            .set    use_bytes, 1
+            .set    use_table, 1
+            .set    use_bytes, 1
 
             .ifdef  use_table
             .print  "Conditional Assembly: Lookup digits"
@@ -71,7 +71,7 @@
             .endm
 
             .macro  computeBytes, i
-            cmp     r4, #'9'                // Select the correct digit
+            cmp     r4, #9                  // Determine conversion
             addgt   r4, r4, #'A' - 10       // Convert value to A-F
             addls   r4, r4, #'0'            // Convert value to 0-9
             strb    r4, [r0, #\i]           // Output the digit
@@ -79,7 +79,7 @@
 
             .macro  computeWords
             lsl     r6, r6, #8              // Shift the current digits
-            cmp     r4, #'9'                // Select the correct digit
+            cmp     r4, #9                  // Select the correct digit
             addgt   r4, r4, #'A' - 10       // Convert value to A-F
             addls   r4, r4, #'0'            // Convert value to 0-9
             orr     r6, r6, r4              // Output the digit
@@ -116,8 +116,15 @@
 
             .align  4
 u64ToHexStr:
+            push    { r4 }
+
             .ifdef  use_table
+            push    { r5 }
             adr     r5, lookup              // Converts binary to char
+            .endif
+
+            .ifndef use_bytes
+            push    { r6 }
             .endif
 
             lsr     r4, r3, #28             // Get the nibble to convert
@@ -203,29 +210,45 @@ u64ToHexStr:
             movs    r4, #0
             strb    r4, [r0, #16]           // Zero terminte string
 
+            .ifndef use_bytes
+            pop     { r6 }
+            .endif
+
+            .ifdef  use_table
+            pop     { r5 }
+            .endif
+
+            pop     { r4 }
             bx      lr
 
 //-----------------------------------------------------------------------------
 
             .align  4
 u32ToHexStr:
+            push    { r4 }
+
             .ifdef  use_table
+            push    { r5 }
             adr     r5, lookup              // Converts binary to char
             .endif
 
-            lsr     r4, r2, #28
+            .ifndef use_bytes
+            push    { r6 }
+            .endif
+
+            lsr     r4, r1, #28
             and     r4, r4, #0xf
             nextDigit 0
 
-            lsr     r4, r2, #24
+            lsr     r4, r1, #24
             and     r4, r4, #0xf
             nextDigit 1
 
-            lsr     r4, r2, #20
+            lsr     r4, r1, #20
             and     r4, r4, #0xf
             nextDigit 2
 
-            lsr     r4, r2, #16
+            lsr     r4, r1, #16
             and     r4, r4, #0xf
             nextDigit 3
 
@@ -234,19 +257,19 @@ u32ToHexStr:
             str     r6, [r0]
             .endif
 
-            lsr     r4, r2, #12
+            lsr     r4, r1, #12
             and     r4, r4, #0xf
             nextDigit 4
 
-            lsr     r4, r2, #8
+            lsr     r4, r1, #8
             and     r4, r4, #0xf
             nextDigit 5
 
-            lsr     r4, r2, #4
+            lsr     r4, r1, #4
             and     r4, r4, #0xf
             nextDigit 6
 
-            and     r4, r2, #0xf
+            and     r4, r1, #0xf
             nextDigit 7
 
             .ifndef use_bytes
@@ -257,29 +280,45 @@ u32ToHexStr:
             movs    r4, #0
             strb    r4, [r0, #8]            // Zero terminte string
 
+            .ifndef use_bytes
+            pop     { r6 }
+            .endif
+
+            .ifdef  use_table
+            pop     { r5 }
+            .endif
+
+            pop     { r4 }
             bx      lr
 
 //-----------------------------------------------------------------------------
 
             .align  4
 u16ToHexStr:
+            push    { r4 }
+
             .ifdef  use_table
+            push    { r5 }
             adr     r5, lookup              // Converts binary to char
             .endif
 
-            lsr     r4, r2, #12
+            .ifndef use_bytes
+            push    { r6 }
+            .endif
+
+            lsr     r4, r1, #12
             and     r4, r4, #0xf
             nextDigit 0
 
-            lsr     r4, r2, #8
+            lsr     r4, r1, #8
             and     r4, r4, #0xf
             nextDigit 1
 
-            lsr     r4, r2, #4
+            lsr     r4, r1, #4
             and     r4, r4, #0xf
             nextDigit 2
 
-            and     r4, r2, #0xf
+            and     r4, r1, #0xf
             nextDigit 3
 
             .ifndef use_bytes
@@ -290,30 +329,32 @@ u16ToHexStr:
             movs    r4, #0
             strb    r4, [r0, #4]            // Zero terminte string
 
+            .ifndef use_bytes
+            pop     { r6 }
+            .endif
+
+            .ifdef  use_table
+            pop     { r5 }
+            .endif
+
+            pop     { r4 }
             bx      lr
 
 //-----------------------------------------------------------------------------
+// For the smaller sizes its better to just use table lookup and byte output
 
             .align  4
 u8ToHexStr:
-            .ifdef  use_table
-            adr     r5, lookup              // Converts binary to char
-            .endif
+            adr     r2, lookup              // Get ascii from lookup table
 
-            lsr     r4, r2, #4
-            and     r4, r4, #0xf
-            nextDigit 0
+            lsr     r3, r1, #4              // Position desired nibble
+            and     r3, r3, #0x0f           // and create an index
+            ldrb    r3, [r2, r3]            // Lookup the ascii character
+            strb    r3, [r0]                // and output it
 
-            and     r4, r2, #0xf
-            nextDigit 1
-
-            .ifndef use_bytes
-            rev16   r6, r6
-            strh    r6, [r0]                // Output digits
-            .endif
-
-            movs    r4, #0
-            strb    r4, [r0, #2]            // Zero terminte string
+            and     r3, r1, #0x0f
+            ldrb    r3, [r2, r3]
+            strh    r3, [r0, #1]            // Output digit and termination
 
             bx      lr
 
@@ -321,19 +362,11 @@ u8ToHexStr:
 
             .align  4
 u4ToHexStr:
-            .ifdef  use_table
-            adr     r5, lookup              // Converts binary to char
-            .endif
+            adr     r2, lookup              // Get ascii from lookup table
 
-            and     r4, r2, #0xf
-            nextDigit 0
-
-            .ifndef use_bytes
-            strb    r6, [r0]                // Output digits
-            .endif
-
-            movs    r4, #0
-            strb    r4, [r0, #1]            // Zero terminte string
+            and     r3, r1, #0x0f           // Create an index
+            ldrb    r3, [r2, r3]            // Lookup the digit
+            strh    r3, [r0]                // and output it with termination
 
             bx      lr
 
@@ -341,7 +374,5 @@ u4ToHexStr:
 
             .align  4
 
-            .ifdef  use_table
 lookup:     .ascii  "0123456789ABCDEF"
-            .endif
 

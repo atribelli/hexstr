@@ -49,14 +49,15 @@ u64ToHexStr:
             vmov.u8 q2, #'A' - '0' - 10
             vcgt.u8 q1, q0, q1              // Determine A-F bytes
 
-            rev     r1, r1                  // Restore value
+            rev     r2, r2                  // Restore value
+            rev     r3, r3
 
             vand.8  q1, q1, q2              // Update A-F bytes
-            movs    r2, #0
+            movs    r1, #0
             vadd.u8 q0, q1, q0
 
             vst1.8  { q0 }, [r0]            // Output the string
-            strb    r2, [r0, #16]           // Zero-terminate string
+            strb    r1, [r0, #16]           // Zero-terminate string
 
             bx      lr
 
