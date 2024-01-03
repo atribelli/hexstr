@@ -54,7 +54,7 @@ hexstr-neon64: main.o hexstr-neon64.o
 hexstr-neon64.o: hexstr-neon64.s
 	as $(optdb) -o hexstr-neon64.o $(optas) hexstr-neon64.s
 
-arm32: hexstr-a32 hexstr-neon32
+arm32: hexstr-a32 hexstr-neon32 hexstr-thumb
 
 hexstr-a32: main.o hexstr-a32.o
 	g++ $(optdb) -o hexstr-a32 $(optcpp) main.o hexstr-a32.o
@@ -67,6 +67,12 @@ hexstr-neon32: main.o hexstr-neon32.o
 
 hexstr-neon32.o: hexstr-neon32.s
 	as $(optdb) -o hexstr-neon32.o $(optas) hexstr-neon32.s
+
+hexstr-thumb: main.o hexstr-thumb.o
+	g++ $(optdb) -o hexstr-thumb $(optcpp) main.o hexstr-thumb.o
+
+hexstr-thumb.o: hexstr-thumb.s
+	as $(optdb) -o hexstr-thumb.o $(optas) hexstr-thumb.s
 
 # Intel assembly language code
 
@@ -93,4 +99,4 @@ hexstr-avx.o: hexstr-avx.s
 # Quietly clean up
 
 clean:
-	rm -f hexstr-c hexstr-intrin hexstr-a64 hexstr-neon64 hexstr-a32 hexstr-neon32 hexstr-x64 hexstr-sse hexstr-avx a.out *.o
+	rm -f hexstr-c hexstr-intrin hexstr-a64 hexstr-neon64 hexstr-a32 hexstr-neon32 hexstr-thumb hexstr-x64 hexstr-sse hexstr-avx a.out *.o

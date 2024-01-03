@@ -59,6 +59,12 @@ u64ToHexStr:
             bx      lr
 
 //-----------------------------------------------------------------------------
+// Convert value to zero terminated hex string.
+// Arguments:
+//     R0   Buffer, must be at least 17 bytes in size
+//     R1   Value
+// Return:
+//     R0   Buffer
 
             .align  4
 u32ToHexStr:

@@ -1,4 +1,4 @@
-// hexstr-a32.s
+// hexstr-thumb.s
 //
 // Convert values of various sizes to zero terminated hex strings.
 //     u64ToHexStr   64-bit double word
@@ -72,17 +72,21 @@
 
             .macro  computeBytes, i
             cmp     r4, #9                  // Determine conversion
-            addgt   r4, r4, #'A' - 10       // Convert value to A-F
-            addls   r4, r4, #'0'            // Convert value to 0-9
-            strb    r4, [r0, #\i]           // Output the digit
+            bls     1f
+            add     r4, r4, #'A' - 10       // Convert value to A-F
+            bal     2f
+1:          add     r4, r4, #'0'            // Convert value to 0-9
+2:          strb    r4, [r0, #\i]           // Output the digit
             .endm
 
             .macro  computeWords
             lsl     r6, r6, #8              // Shift the current digits
             cmp     r4, #9                  // Select the correct digit
-            addgt   r4, r4, #'A' - 10       // Convert value to A-F
-            addls   r4, r4, #'0'            // Convert value to 0-9
-            orr     r6, r6, r4              // Output the digit
+            bls     1f
+            add     r4, r4, #'A' - 10       // Convert value to A-F
+            bal     2f
+1:          add     r4, r4, #'0'            // Convert value to 0-9
+2:          orr     r6, r6, r4              // Output the digit
             .endm
 
             // The nextDigit macro will be used by the code below
@@ -114,9 +118,15 @@
 // We are going to start at the high order nibble
 // and work down one at a time to the low order nibble.
 
+            .arm
             .align  4
 u64ToHexStr:
-            push    { r4 }
+            add     r1, pc, #1              // Switch to thumb mode
+            bx      r1
+            .thumb
+
+            push    { r4, r7 }
+            mov     r7, #0xf
 
             .ifdef  use_table
             push    { r5 }
@@ -131,15 +141,15 @@ u64ToHexStr:
             nextDigit 0
 
             lsr     r4, r3, #24
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 1
 
             lsr     r4, r3, #20
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 2
 
             lsr     r4, r3, #16
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 3
 
             .ifndef use_bytes
@@ -148,18 +158,19 @@ u64ToHexStr:
             .endif
 
             lsr     r4, r3, #12
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 4
 
             lsr     r4, r3, #8
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 5
 
             lsr     r4, r3, #4
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 6
 
-            and     r4, r3, #0xf
+            mov     r4, r3
+            and     r4, r4, r7
             nextDigit 7
 
             .ifndef use_bytes
@@ -171,15 +182,15 @@ u64ToHexStr:
             nextDigit 8
 
             lsr     r4, r2, #24
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 9
 
             lsr     r4, r2, #20
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 10
 
             lsr     r4, r2, #16
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 11
 
             .ifndef use_bytes
@@ -188,18 +199,19 @@ u64ToHexStr:
             .endif
 
             lsr     r4, r2, #12
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 12
 
             lsr     r4, r2, #8
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 13
 
             lsr     r4, r2, #4
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 14
 
-            and     r4, r2, #0xf
+            mov     r4, r2
+            and     r4, r4, r7
             nextDigit 15
 
             .ifndef use_bytes
@@ -218,7 +230,7 @@ u64ToHexStr:
             pop     { r5 }
             .endif
 
-            pop     { r4 }
+            pop     { r4, r7 }
             bx      lr
 
 //-----------------------------------------------------------------------------
@@ -232,9 +244,16 @@ u64ToHexStr:
 // We are going to start at the high order nibble
 // and work down one at a time to the low order nibble.
 
+
+            .arm
             .align  4
 u32ToHexStr:
-            push    { r4 }
+            add     r2, pc, #1              // Switch to thumb mode
+            bx      r2
+            .thumb
+
+            push    { r4, r7 }
+            mov     r7, #0xf
 
             .ifdef  use_table
             push    { r5 }
@@ -246,19 +265,19 @@ u32ToHexStr:
             .endif
 
             lsr     r4, r1, #28
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 0
 
             lsr     r4, r1, #24
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 1
 
             lsr     r4, r1, #20
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 2
 
             lsr     r4, r1, #16
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 3
 
             .ifndef use_bytes
@@ -267,18 +286,19 @@ u32ToHexStr:
             .endif
 
             lsr     r4, r1, #12
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 4
 
             lsr     r4, r1, #8
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 5
 
             lsr     r4, r1, #4
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 6
 
-            and     r4, r1, #0xf
+            mov     r4, r1
+            and     r4, r4, r7
             nextDigit 7
 
             .ifndef use_bytes
@@ -297,14 +317,20 @@ u32ToHexStr:
             pop     { r5 }
             .endif
 
-            pop     { r4 }
+            pop     { r4, r7 }
             bx      lr
 
 //-----------------------------------------------------------------------------
 
+            .arm
             .align  4
 u16ToHexStr:
-            push    { r4 }
+            add     r2, pc, #1              // Switch to thumb mode
+            bx      r2
+            .thumb
+
+            push    { r4, r7 }
+            mov     r7, #0xf
 
             .ifdef  use_table
             push    { r5 }
@@ -316,18 +342,19 @@ u16ToHexStr:
             .endif
 
             lsr     r4, r1, #12
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 0
 
             lsr     r4, r1, #8
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 1
 
             lsr     r4, r1, #4
-            and     r4, r4, #0xf
+            and     r4, r4, r7
             nextDigit 2
 
-            and     r4, r1, #0xf
+            mov     r4, r1
+            and     r4, r4, r7
             nextDigit 3
 
             .ifndef use_bytes
@@ -346,37 +373,59 @@ u16ToHexStr:
             pop     { r5 }
             .endif
 
-            pop     { r4 }
+            pop     { r4, r7 }
             bx      lr
 
 //-----------------------------------------------------------------------------
 // For the smaller sizes its better to just use table lookup and byte output
 
+            .arm
             .align  4
 u8ToHexStr:
+            add     r2, pc, #1              // Switch to thumb mode
+            bx      r2
+            .thumb
+
+            push    { r4 }
+            mov     r4, #0x0f
+
             adr     r2, lookup              // Get ascii from lookup table
 
             lsr     r3, r1, #4              // Position desired nibble
-            and     r3, r3, #0x0f           // and create an index
+            and     r3, r3, r4              // and create an index
             ldrb    r3, [r2, r3]            // Lookup the ascii character
             strb    r3, [r0]                // and output it
 
-            and     r3, r1, #0x0f
+            mov     r3, r1
+            and     r3, r3, r4
             ldrb    r3, [r2, r3]
-            strh    r3, [r0, #1]            // Output digit and termination
+            add     r0, r0, #1
+            strh    r3, [r0]                // Output digit and termination
+            sub     r0, r0, #1              // Restore buffer pointer
 
+            pop     { r4 }
             bx      lr
 
 //-----------------------------------------------------------------------------
 
+            .arm
             .align  4
 u4ToHexStr:
+            add     r2, pc, #1              // Switch to thumb mode
+            bx      r2
+            .thumb
+
+            push    { r4 }
+            mov     r4, #0x0f
+
             adr     r2, lookup              // Get ascii from lookup table
 
-            and     r3, r1, #0x0f           // Create an index
+            mov     r3, r1
+            and     r3, r3, r4              // Create an index
             ldrb    r3, [r2, r3]            // Lookup the digit
             strh    r3, [r0]                // and output it with termination
 
+            pop     { r4 }
             bx      lr
 
 //-----------------------------------------------------------------------------
