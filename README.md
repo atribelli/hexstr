@@ -17,10 +17,10 @@ hexstr-x64.s - x86-64 assembly implementation (gas).
 hexstr-sse.s - SSE implementation (gas).  
 hexstr-avx.s - AVX implementation (gas).  
 hexstr-a64.s - AArch64 assembly implementation.  
-hexstr-neon64.s - AArch64 NEON implementation.    
+hexstr-neon64.s - AArch64 NEON implementation.  
 hexstr-a32.s - ARMv7-A assembly implementation.  
-hexstr-neon32.s - ARMv7-A NEON implementation.    
-hexstr-thumb.s - ARMv7-A thumb implementation.    
+hexstr-neon32.s - ARMv7-A NEON implementation.  
+hexstr-thumb.s - ARMv7-A thumb implementation.  
 hexstr-x64.asm - x86-64 assembly implementation (masm).  
 hexstr-sse.asm - SSE implementation (masm).  
 hexstr-avx.asm - AVX implementation (masm).  
@@ -29,7 +29,7 @@ hexstr-avx.asm - AVX implementation (masm).
 make - Create C and intrinsics based code: hexstr-c and hexstr-intrin.  
 make intel - Create x64 assembly, SSE, and AVX code: hexstr-x64, hexstr-sse, and hexstr-avx.  
 make arm64 - Create AArch64 assembly and NEON code: hexstr-a64 and hexstr-neon64.  
-make arm32 - Create ARMv7-A assembly, NEON, and thumb code: hexstr-a32, hexstr-neon32, and hexstr-thumb.
+make arm32 - Create ARMv7-A assembly, NEON, and thumb code: hexstr-a32, hexstr-neon32, and hexstr-thumb.  
 make clean - Remove executable and build files.  
 nmake /f hexstr.mak - Create all executables for Windows.  
 nmake /f hexstr.mak clean - Remove executable and build files under Windows.  
