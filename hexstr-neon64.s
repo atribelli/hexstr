@@ -9,7 +9,7 @@
 //     u4ToHexStr    4-bit  nibble
 
             .text
-            .align  2
+            .balign 4
             .global u64ToHexStr, u32ToHexStr, u16ToHexStr
             .global u8ToHexStr, u4ToHexStr
 
@@ -21,7 +21,7 @@
 // Return:
 //     X0  Buffer
 
-            .align  4
+            .balign 16
 u64ToHexStr:
             rev     x1, x1                  // Reverse bytes to match string
             mov     v0.d[0], x1
@@ -48,7 +48,7 @@ u64ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u32ToHexStr:
             rev     w1, w1                  // Reverse bytes to match string
             mov     v0.s[0], w1
@@ -75,7 +75,7 @@ u32ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u16ToHexStr:
             rev     w1, w1                  // Reverse bytes to match string
             lsr     w1, w1, #16
@@ -104,7 +104,7 @@ u16ToHexStr:
 //-----------------------------------------------------------------------------
 // For the smaller sizes its better to just use table lookup and byte output
 
-            .align  4
+            .balign 16
 u8ToHexStr:
             adr     x2, lookup              // Get ascii from lookup table
 
@@ -120,7 +120,7 @@ u8ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u4ToHexStr:
             adr     x2, lookup              // Get ascii from lookup table
 
@@ -131,7 +131,7 @@ u4ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 
 lookup:     .ascii  "0123456789ABCDEF"
 

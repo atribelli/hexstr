@@ -8,7 +8,7 @@
 //     u4ToHexStr    4-bit  nibble
 
             .text
-            .align  2
+            .balign 4
             .global u64ToHexStr, u32ToHexStr, u16ToHexStr
             .global u8ToHexStr, u4ToHexStr
 
@@ -107,7 +107,7 @@
 // We are going to start at the high order nibble
 // and work down one at a time to the low order nibble.
 
-            .align  4
+            .balign 16
 u64ToHexStr:
             .ifdef  use_table
             adr     x3, lookup              // Converts binary to char
@@ -190,7 +190,7 @@ u64ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u32ToHexStr:
             .ifdef  use_table
             adr     x3, lookup              // Converts binary to char
@@ -237,7 +237,7 @@ u32ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u16ToHexStr:
             .ifdef  use_table
             adr     x3, lookup              // Converts binary to char
@@ -269,7 +269,7 @@ u16ToHexStr:
 //-----------------------------------------------------------------------------
 // For the smaller sizes its better to just use table lookup and byte output
 
-            .align  4
+            .balign 16
 u8ToHexStr:
             adr     x2, lookup              // Get ascii from lookup table
 
@@ -285,7 +285,7 @@ u8ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u4ToHexStr:
             adr     x2, lookup              // Get ascii from lookup table
 
@@ -296,7 +296,7 @@ u4ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 
 lookup:     .ascii  "0123456789ABCDEF"
 

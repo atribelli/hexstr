@@ -14,7 +14,7 @@
             .endif
 
             .text
-            .align  4
+            .balign 4
             .global u64ToHexStr, u32ToHexStr, u16ToHexStr
             .global u8ToHexStr, u4ToHexStr
             .global _u64ToHexStr, _u32ToHexStr, _u16ToHexStr
@@ -118,7 +118,7 @@
 # We are going to start at the high order nibble
 # and work down one at a time to the low order nibble.
 
-            .align  4
+            .balign 16
 u64ToHexStr:
 _u64ToHexStr:
             .ifdef  use_table
@@ -219,7 +219,7 @@ _u64ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u32ToHexStr:
 _u32ToHexStr:
             .ifdef  use_table
@@ -276,7 +276,7 @@ _u32ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u16ToHexStr:
 _u16ToHexStr:
             .ifdef  use_table
@@ -313,7 +313,7 @@ _u16ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u8ToHexStr:
 _u8ToHexStr:
             .ifdef  use_table
@@ -340,7 +340,7 @@ _u8ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u4ToHexStr:
 _u4ToHexStr:
             .ifdef  use_table
@@ -361,7 +361,7 @@ _u4ToHexStr:
 
 #-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 
             .ifdef  use_table
 lookup:     .ascii  "0123456789ABCDEF"

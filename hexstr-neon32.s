@@ -16,7 +16,7 @@
             .endif
 
             .text
-            .align  2
+            .balign 4
             .global u64ToHexStr, u32ToHexStr, u16ToHexStr
             .global u8ToHexStr, u4ToHexStr
 
@@ -28,7 +28,7 @@
 // Return:
 //     R0      Buffer
 
-            .align  4
+            .balign 16
 u64ToHexStr:
             rev     r2, r2                  // Reverse bytes to match string
             rev     r3, r3
@@ -66,7 +66,7 @@ u64ToHexStr:
 // Return:
 //     R0   Buffer
 
-            .align  4
+            .balign 16
 u32ToHexStr:
             rev     r1, r1                  // Reverse bytes to match string
             str     r1, [r0]
@@ -96,7 +96,7 @@ u32ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u16ToHexStr:
             rev16   r1, r1                  // Reverse bytes to match string
             strh    r1, [r0]
@@ -127,7 +127,7 @@ u16ToHexStr:
 //-----------------------------------------------------------------------------
 // For the smaller sizes its better to just use table lookup and byte output
 
-            .align  4
+            .balign 16
 u8ToHexStr:
             adr     r2, lookup              // Get ascii from lookup table
 
@@ -144,7 +144,7 @@ u8ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 u4ToHexStr:
             adr     r2, lookup              // Get ascii from lookup table
 
@@ -156,7 +156,7 @@ u4ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 
 lookup:     .ascii  "0123456789ABCDEF"
 

@@ -15,7 +15,7 @@
             .endif
 
             .text
-            .align  2
+            .balign 4
             .global u64ToHexStr, u32ToHexStr, u16ToHexStr
             .global u8ToHexStr, u4ToHexStr
 
@@ -119,7 +119,7 @@
 // and work down one at a time to the low order nibble.
 
             .arm
-            .align  4
+            .balign 16
 u64ToHexStr:
             add     r1, pc, #1              // Switch to thumb mode
             bx      r1
@@ -246,7 +246,7 @@ u64ToHexStr:
 
 
             .arm
-            .align  4
+            .balign 16
 u32ToHexStr:
             add     r2, pc, #1              // Switch to thumb mode
             bx      r2
@@ -323,7 +323,7 @@ u32ToHexStr:
 //-----------------------------------------------------------------------------
 
             .arm
-            .align  4
+            .balign 16
 u16ToHexStr:
             add     r2, pc, #1              // Switch to thumb mode
             bx      r2
@@ -380,7 +380,7 @@ u16ToHexStr:
 // For the smaller sizes its better to just use table lookup and byte output
 
             .arm
-            .align  4
+            .balign 16
 u8ToHexStr:
             add     r2, pc, #1              // Switch to thumb mode
             bx      r2
@@ -409,7 +409,7 @@ u8ToHexStr:
 //-----------------------------------------------------------------------------
 
             .arm
-            .align  4
+            .balign 16
 u4ToHexStr:
             add     r2, pc, #1              // Switch to thumb mode
             bx      r2
@@ -430,7 +430,7 @@ u4ToHexStr:
 
 //-----------------------------------------------------------------------------
 
-            .align  4
+            .balign 16
 
 lookup:     .ascii  "0123456789ABCDEF"
 
