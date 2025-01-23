@@ -13,13 +13,15 @@ It's less interesting than hex, but I've added Intel SSE/AVX2 decimal string cre
 makefile - macOS and Linux based builds.  
 hexstr.mak - Windows based builds.  
 timer.h - Determine elapsed time.  
-cpuid.c - Displays cpu info  
+cpuid.c - Displays cpu info.  
 cpuinfo.h  
 cpuinfo.c - Gets CPU info and features.  
 maind.cpp  
 mainh.cpp - Timing code.  
 hexstr.h - Prototypes for hex string conversion functions.  
 hexstr.c - C and SSE and NEON intrinsic implementations.  
+hexstr-test.h  
+hexstr-test.cpp - Result testing.  
 hexstr-x64.s - x86-64 assembly implementation (gas).  
 hexstr-sse.s - SSE implementation (gas).  
 hexstr-avx.s - AVX implementation (gas).  
@@ -31,6 +33,8 @@ hexstr-thumb.s - ARMv7-A thumb implementation.
 hexstr-x64.asm - x86-64 assembly implementation (masm).  
 hexstr-sse.asm - SSE implementation (masm).  
 hexstr-avx.asm - AVX implementation (masm).  
+decstr-test.h  
+decstr-test.cpp - Result testing.  
 decstr-x64.s - x86-64 assembly implementation (gas).  
 decstr-sse.s - SSE implementation (gas).  
 decstr-avx.s - AVX implementation (gas).  

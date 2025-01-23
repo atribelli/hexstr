@@ -104,35 +104,41 @@ maind.o: decstr.h maind.cpp
 
 arm64: hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-neon64
 
-hexstr-a64c: a64main.o a64cpuinfo.o hexstr-a64c.o
-	g++ $(optdb) -o hexstr-a64c $(optcpp) $(optneon) a64main.o a64cpuinfo.o hexstr-a64c.o
+hexstr-a64c: a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-a64c.o
+	g++ $(optdb) -o hexstr-a64c $(optcpp) $(optneon) a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-a64c.o
 
-a64main.o: hexstr.h main.cpp
-	g++ $(optdb) -o a64main.o -c $(optcpp) $(optneon) main.cpp
+a64mainh.o: hexstr.h mainh.cpp
+	g++ $(optdb) -o a64mainh.o -c $(optcpp) $(optneon) mainh.cpp
 
-a64cpuinfo.o: cpuinfo.h cpuinfo.cpp
-	g++ $(optdb) -o a64cpuinfo.o -c $(optcpp) $(optneon) cpuinfo.cpp
+a64cpuinfo.o: cpuinfo.h cpuinfo.c
+	g++ $(optdb) -o a64cpuinfo.o -c $(optcpp) $(optneon) cpuinfo.c
+
+a64hexstr-test.o: hexstr.h hexstr-test.cpp
+	g++ $(optdb) -o a64hexstr-test.o -c $(optcpp) $(optneon) hexstr-test.cpp
 
 hexstr-a64c.o: hexstr.h hexstr.c
 	gcc $(optdb) -o hexstr-a64c.o -c $(optc) $(optneon) hexstr.c
 
-hexstr-a64intrin: a64main.o a64cpuinfo.o hexstr-a64intrin.o
-	g++ $(optdb) -o hexstr-a64intrin $(optcpp) $(optneon) a64main.o a64cpuinfo.o hexstr-a64intrin.o
+hexstr-a64intrin: a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-a64intrin.o
+	g++ $(optdb) -o hexstr-a64intrin $(optcpp) $(optneon) a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-a64intrin.o
 
 hexstr-a64intrin.o: hexstr.h hexstr.c
 	gcc $(optdb) -o hexstr-a64intrin.o -c $(optc) $(optneon) -DUSE_SIMD hexstr.c
 
-hexstr-a64asm: a64main.o hexstr-a64asm.o
-	g++ $(optdb) -o hexstr-a64asm $(optcpp) $(optneon) a64main.o hexstr-a64asm.o
+hexstr-a64asm: a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-a64asm.o
+	g++ $(optdb) -o hexstr-a64asm $(optcpp) $(optneon) a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-a64asm.o
 
 hexstr-a64asm.o: hexstr-a64.s
 	as $(optdb) -o hexstr-a64asm.o $(optas) hexstr-a64.s
 
-hexstr-neon64: a64main.o hexstr-neon64.o
-	g++ $(optdb) -o hexstr-neon64 $(optcpp) $(optneon) a64main.o hexstr-neon64.o
+hexstr-neon64: a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-neon64.o
+	g++ $(optdb) -o hexstr-neon64 $(optcpp) $(optneon) a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-neon64.o
 
 hexstr-neon64.o: hexstr-neon64.s
 	as $(optdb) -o hexstr-neon64.o $(optas) hexstr-neon64.s
+
+a64maind.o: hexstr.h maind.cpp
+	g++ $(optdb) -o a64maind.o -c $(optcpp) $(optneon) maind.cpp
 
 
 
