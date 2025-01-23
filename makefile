@@ -26,43 +26,76 @@ optavx  = -march=haswell
 #-----------------------------------------------------------------------------
 # Intel x64 code
 
-intel: hexstr-c hexstr-intrin hexstr-x64asm hexstr-sse hexstr-avx
+intel: cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx decstr-x64 decstr-sse decstr-avx
 
-hexstr-c: main.o cpuinfo.o hexstr-c.o
-	g++ $(optdb) -o hexstr-c $(optcpp) $(optavx) main.o cpuinfo.o hexstr-c.o
+cpuid: cpuinfo.o cpuid.o
+	gcc $(optdb) -o cpuid $(optc) cpuinfo.o cpuid.o
 
-main.o: hexstr.h main.cpp
-	g++ $(optdb) -c $(optcpp) $(optavx) main.cpp
+cpuid.o: cpuinfo.h cpuid.c
+	gcc $(optdb) -o cpuid.o -c $(optc) cpuid.c
 
-cpuinfo.o: cpuinfo.h cpuinfo.cpp
-	g++ $(optdb) -c $(optcpp) $(optavx) cpuinfo.cpp
+cpuinfo.o: cpuinfo.h cpuinfo.c
+	gcc $(optdb) -c $(optc) cpuinfo.c
+
+hexstr-c: mainh.o cpuinfo.o hexstr-test.o hexstr-c.o
+	g++ $(optdb) -o hexstr-c $(optcpp) $(optavx) mainh.o cpuinfo.o hexstr-test.o hexstr-c.o
 
 hexstr-c.o: hexstr.h hexstr.c
 	gcc $(optdb) -o hexstr-c.o -c $(optc) $(optavx) hexstr.c
 
-hexstr-intrin: main.o cpuinfo.o hexstr-intrin.o
-	g++ $(optdb) -o hexstr-intrin $(optcpp) $(optavx) main.o cpuinfo.o hexstr-intrin.o
+hexstr-intrin: mainh.o cpuinfo.o hexstr-test.o hexstr-intrin.o
+	g++ $(optdb) -o hexstr-intrin $(optcpp) $(optavx) mainh.o cpuinfo.o hexstr-test.o hexstr-intrin.o
 
 hexstr-intrin.o: hexstr.h hexstr.c
 	gcc $(optdb) -o hexstr-intrin.o -c $(optc) $(optavx) -DUSE_SIMD hexstr.c
 
-hexstr-x64asm: main.o cpuinfo.o hexstr-x64.o
-	g++ $(optdb) -o hexstr-x64asm $(optcpp) $(optavx) main.o cpuinfo.o hexstr-x64.o
+hexstr-x64: mainh.o cpuinfo.o hexstr-test.o hexstr-x64.o
+	g++ $(optdb) -o hexstr-x64 $(optcpp) $(optavx) mainh.o cpuinfo.o hexstr-test.o hexstr-x64.o
 
 hexstr-x64.o: hexstr-x64.s
 	as $(optdb) -o hexstr-x64.o $(optas) hexstr-x64.s
 
-hexstr-sse: main.o cpuinfo.o hexstr-sse.o
-	g++ $(optdb) -o hexstr-sse $(optcpp) $(optavx) main.o cpuinfo.o hexstr-sse.o
+hexstr-sse: mainh.o cpuinfo.o hexstr-test.o hexstr-sse.o
+	g++ $(optdb) -o hexstr-sse $(optcpp) $(optavx) mainh.o cpuinfo.o hexstr-test.o hexstr-sse.o
 
 hexstr-sse.o: hexstr-sse.s
 	as $(optdb) -o hexstr-sse.o $(optas) hexstr-sse.s
 
-hexstr-avx: main.o cpuinfo.o hexstr-avx.o
-	g++ $(optdb) -o hexstr-avx $(optcpp) $(optavx) main.o cpuinfo.o hexstr-avx.o
+hexstr-avx: mainh.o cpuinfo.o hexstr-test.o hexstr-avx.o
+	g++ $(optdb) -o hexstr-avx $(optcpp) $(optavx) mainh.o cpuinfo.o hexstr-test.o hexstr-avx.o
 
 hexstr-avx.o: hexstr-avx.s
 	as $(optdb) -o hexstr-avx.o $(optas) hexstr-avx.s
+
+hexstr-test.o: hexstr.h hexstr-test.cpp
+	g++ $(optdb) -c $(optcpp) $(optavx) -o hexstr-test.o hexstr-test.cpp
+
+mainh.o: hexstr.h mainh.cpp
+	g++ $(optdb) -c $(optcpp) $(optavx) mainh.cpp
+
+decstr-x64: maind.o cpuinfo.o decstr-test.o decstr-x64.o
+	g++ $(optdb) -o decstr-x64 $(optcpp) $(optavx) maind.o cpuinfo.o decstr-test.o decstr-x64.o
+
+decstr-x64.o: nextdigits.s decstr-x64.s
+	as $(optdb) -o decstr-x64.o $(optas) decstr-x64.s
+
+decstr-sse: maind.o cpuinfo.o decstr-test.o decstr-sse.o
+	g++ $(optdb) -o decstr-sse $(optcpp) $(optavx) maind.o cpuinfo.o decstr-test.o decstr-sse.o
+
+decstr-sse.o: nextdigits.s decstr-sse.s
+	as $(optdb) -o decstr-sse.o $(optas) decstr-sse.s
+
+decstr-avx: maind.o cpuinfo.o decstr-test.o decstr-avx.o
+	g++ $(optdb) -o decstr-avx $(optcpp) $(optavx) maind.o cpuinfo.o decstr-test.o decstr-avx.o
+
+decstr-avx.o: nextdigits.s decstr-avx.s
+	as $(optdb) -o decstr-avx.o $(optas) decstr-avx.s
+
+decstr-test.o: decstr.h decstr-test.cpp
+	g++ $(optdb) -c $(optcpp) $(optavx) -o decstr-test.o decstr-test.cpp
+
+maind.o: decstr.h maind.cpp
+	g++ $(optdb) -c $(optcpp) $(optavx) -o maind.o maind.cpp
 
 
 
@@ -149,4 +182,4 @@ hexstr-thumb.o: hexstr-thumb.s
 # Quietly clean up
 
 clean:
-	rm -f hexstr-c hexstr-intrin hexstr-x64asm hexstr-sse hexstr-avx hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-neon64 hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-neon32 hexstr-thumb a.out *.o
+	rm -f cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-neon64 hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-neon32 hexstr-thumb decstr-x64 decstr-sse decstr-avx a.out *.o

@@ -5,43 +5,77 @@ optc   = /std:c17 /O2 /EHsc
 
 # General C / C++ code and intrinsics
 
-all: hexstr-c.exe hexstr-intrin.exe hexstr-x64.exe hexstr-sse.exe hexstr-avx.exe
+all: cpuid.exe hexstr-c.exe hexstr-intrin.exe hexstr-x64.exe hexstr-sse.exe \
+     hexstr-avx.exe decstr-x64.exe decstr-sse.exe decstr-avx.exe
 
-hexstr-c.exe: main.obj cpuinfo.obj hexstr-c.obj
-	cl /Fehexstr-c $(optcpp) main.obj cpuinfo.obj hexstr-c.obj
+cpuid.exe: cpuid.obj cpuinfo.obj
+	cl /Fecpuid $(optc) cpuinfo.obj cpuid.obj
+
+cpuid.obj: cpuinfo.h cpuid.c
+	cl /c $(optc) cpuid.c
+
+cpuinfo.obj: cpuinfo.h cpuinfo.c
+	cl /c $(optc) cpuinfo.c
+
+hexstr-c.exe: mainh.obj cpuinfo.obj hexstr-test.obj hexstr-c.obj
+	cl /Fehexstr-c $(optcpp) mainh.obj cpuinfo.obj hexstr-test.obj hexstr-c.obj
 
 hexstr-c.obj: hexstr.h hexstr.c
 	cl /Fohexstr-c /c $(optc) hexstr.c
 
-hexstr-intrin.exe: main.obj cpuinfo.obj hexstr-intrin.obj
-	cl /Fehexstr-intrin $(optcpp) main.obj cpuinfo.obj hexstr-intrin.obj
+hexstr-intrin.exe: mainh.obj cpuinfo.obj hexstr-test.obj hexstr-intrin.obj
+	cl /Fehexstr-intrin $(optcpp) mainh.obj cpuinfo.obj hexstr-test.obj hexstr-intrin.obj
 
 hexstr-intrin.obj: hexstr.h hexstr.c
 	cl /Fohexstr-intrin /c $(optc) /DUSE_SIMD hexstr.c
 
-main.obj: hexstr.h main.cpp
-	cl /c $(optcpp) main.cpp
-
-cpuinfo.obj: cpuinfo.h cpuinfo.cpp
-	cl /c $(optcpp) cpuinfo.cpp
-
-hexstr-x64.exe: main.obj cpuinfo.obj hexstr-x64.obj
-	cl /Fehexstr-x64 $(optcpp) main.obj cpuinfo.obj hexstr-x64.obj
+hexstr-x64.exe: mainh.obj cpuinfo.obj hexstr-test.obj hexstr-x64.obj
+	cl /Fehexstr-x64 $(optcpp) mainh.obj cpuinfo.obj hexstr-test.obj hexstr-x64.obj
 
 hexstr-x64.obj: hexstr-x64.asm
 	ml64 /c hexstr-x64.asm
 
-hexstr-sse.exe: main.obj cpuinfo.obj hexstr-sse.obj
-	cl /Fehexstr-sse $(optcpp) main.obj cpuinfo.obj hexstr-sse.obj
+hexstr-sse.exe: mainh.obj cpuinfo.obj hexstr-test.obj hexstr-sse.obj
+	cl /Fehexstr-sse $(optcpp) mainh.obj cpuinfo.obj hexstr-test.obj hexstr-sse.obj
 
 hexstr-sse.obj: hexstr-sse.asm
 	ml64 /c hexstr-sse.asm
 
-hexstr-avx.exe: main.obj cpuinfo.obj hexstr-avx.obj
-	cl /Fehexstr-avx $(optcpp) main.obj cpuinfo.obj hexstr-avx.obj
+hexstr-avx.exe: mainh.obj cpuinfo.obj hexstr-test.obj hexstr-avx.obj
+	cl /Fehexstr-avx $(optcpp) mainh.obj cpuinfo.obj hexstr-test.obj hexstr-avx.obj
 
 hexstr-avx.obj: hexstr-avx.asm
 	ml64 /c hexstr-avx.asm
+
+hexstr-test.obj: hexstr.h hexstr-test.h hexstr-test.cpp
+	cl /c $(optcpp) hexstr-test.cpp
+
+mainh.obj: hexstr.h mainh.cpp
+	cl /c $(optcpp) mainh.cpp
+
+decstr-x64.exe: maind.obj cpuinfo.obj decstr-test.obj decstr-x64.obj
+	cl /Fedecstr-x64 $(optcpp) maind.obj cpuinfo.obj decstr-test.obj decstr-x64.obj
+
+decstr-x64.obj: nextdigits.asm decstr-x64.asm
+	ml64 /c decstr-x64.asm
+
+decstr-sse.exe: maind.obj cpuinfo.obj decstr-test.obj decstr-sse.obj
+	cl /Fedecstr-sse $(optcpp) maind.obj cpuinfo.obj decstr-test.obj decstr-sse.obj
+
+decstr-sse.obj: nextdigits.asm decstr-sse.asm
+	ml64 /c decstr-sse.asm
+
+decstr-avx.exe: maind.obj cpuinfo.obj decstr-test.obj decstr-avx.obj
+	cl /Fedecstr-avx $(optcpp) maind.obj cpuinfo.obj decstr-test.obj decstr-avx.obj
+
+decstr-avx.obj: nextdigits.asm decstr-avx.asm
+	ml64 /c decstr-avx.asm
+
+decstr-test.obj: decstr.h decstr-test.h decstr-test.cpp
+	cl /c $(optcpp) decstr-test.cpp
+
+maind.obj: decstr.h decstr-test.h  maind.cpp
+	cl /c $(optcpp) maind.cpp
 
 # Quietly clean up
 

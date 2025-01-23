@@ -1,10 +1,14 @@
 .DS_Store
 .vs/
+cpuid
 hexstr-c
 hexstr-intrin
-hexstr-x64asm
+hexstr-x64
 hexstr-sse
 hexstr-avx
+decstr-x64
+decstr-sse
+decstr-avx
 hexstr-a64c
 hexstr-a64intrin
 hexstr-a64asm
