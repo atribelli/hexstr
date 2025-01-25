@@ -32,8 +32,8 @@
 #-----------------------------------------------------------------------------
 # Convert value to zero terminated decimal string.
 # Arguments:
-#     RDI  Buffer, assumed to be large enough for string and null terminator
-#          and assumped to be alighed to an even address
+#     RDI  Buffer, assumed to be large enough for string and null terminator,
+#          and assumed to be aligned to an even address
 #     RSI  Value
 # Return:
 #     RAX  Buffer
@@ -59,12 +59,11 @@ _u64ToDecStr:
             mov         rdx,  rsi           # Use div remainder register
             lea         r8,   ten19u[rip]   # Integer divisors
 
-            nextDigit   0                   # First 6 digits
-            nextDigit   1
-            nextDigit   2
-            nextDigit   3
-            nextDigit   4
-            nextDigit   5
+            nextDigit64 0                   # First 5 digits
+            nextDigit64 1
+            nextDigit64 2
+            nextDigit64 3
+            nextDigit64 4
 
             # Switch to AVX code
 
@@ -72,15 +71,12 @@ _u64ToDecStr:
             vbroadcastsd ymm0, xmm0         # Duplicate in lanes 1, 2, 3
             vmovapd     ymm1, tend[rip]     # Need 10 for mod calculation
             vmovdqa     ymm2, zero[rip]     # Need ascii zero
-            lea         r8,   ten13fp[rip - 6 * 8] # Floating point divisors,
+            lea         r8,   ten14fp[rip - 5 * 8] # Floating point divisors,
                                             # R8 is offset due to non zero index
-            nextDigits2 6                   # Next 2 digits
-
-            lea         r8,   ten11fp[rip - 8 * 8] # Floating point divisors,
-                                            # R8 is offset for non zero index
-            nextDigits4 8                   # Remaining 12 digits
-            nextDigits4 12
-            nextDigits4 16
+            avxNextDigits4 5                # Last 15 digits
+            avxNextDigits4 9
+            avxNextDigits4 13
+            avxNextDigits3 17
 
             mov         byte ptr [rdi + 20], 0 # Null terminator
             mov         rax,  rdi           # Return original pointer
@@ -109,22 +105,11 @@ _u32ToDecStr:
             vbroadcastsd ymm0, xmm0         # Duplicate in lanes 1, 2, 3
             vmovapd     ymm1, tend[rip]     # Need 10 for mod calculation
             vmovdqa     ymm2, zero[rip]     # Need ascii zero
+            lea         r8,   ten9fp[rip]   # Floating point divisors
 
-            lea         r8,   ten9fp[rip]   # Double divisors
-            nextDigits4 0                   # First 4 digits
-
-            mov         eax,  1000000       # Remove the first four digits
-            cvtsi2sd    xmm1, eax           #   of the original value
-            vdivsd      xmm3, xmm0, xmm1    #   so we can continue
-            roundsd     xmm3, xmm3, 3       #   calculations using floats
-            vmulsd      xmm3, xmm3, xmm1
-            vsubsd      xmm0, xmm0, xmm3
-            cvtsd2ss    xmm0, xmm0
-            vbroadcastss ymm0, xmm0         # Duplicate in lanes 1 ... 7
-
-            vmovaps     ymm1, tenf[rip]     # Switch to floats
-            lea         r8,   ten5fp[rip - 4 * 4]
-            nextDigits6 4                   # Remaining 6 digits
+            avxNextDigits4 0                # All 10 gigits
+            avxNextDigits4 4
+            avxNextDigits2 8
 
             mov         byte ptr [rdi + 10], 0 # Null terminator
             mov         rax,  rdi           # Return original pointer

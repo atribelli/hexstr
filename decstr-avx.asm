@@ -26,8 +26,8 @@
 ;------------------------------------------------------------------------------
 ; Convert value to zero terminated decimal string.
 ; Arguments:
-;     RCX  Buffer, assumed to be large enough for string and null terminator
-;          and assumped to be alighed to an even address
+;     RCX  Buffer, assumed to be large enough for string and null terminator,
+;          and assumed to be aligned to an even address
 ;     RDX  Value
 ; Return:
 ;     RAX  Buffer

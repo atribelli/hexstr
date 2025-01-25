@@ -26,7 +26,7 @@ optavx  = -march=haswell
 #-----------------------------------------------------------------------------
 # Intel x64 code
 
-intel: cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx decstr-x64 decstr-sse decstr-avx
+intel: cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx decstr-c decstr-intrin decstr-x64 decstr-sse decstr-avx
 
 cpuid: cpuinfo.o cpuid.o
 	gcc $(optdb) -o cpuid $(optc) cpuinfo.o cpuid.o
@@ -72,6 +72,18 @@ hexstr-test.o: hexstr.h hexstr-test.cpp
 
 mainh.o: hexstr.h mainh.cpp
 	g++ $(optdb) -c $(optcpp) $(optavx) mainh.cpp
+
+decstr-c: maind.o cpuinfo.o decstr-test.o decstr-c.o
+	g++ $(optdb) -o decstr-c $(optcpp) $(optavx) maind.o cpuinfo.o decstr-test.o decstr-c.o
+
+decstr-c.o: decstr.h decstr.c
+	gcc $(optdb) -o decstr-c.o -c $(optc) $(optavx) decstr.c
+
+decstr-intrin: maind.o cpuinfo.o decstr-test.o decstr-intrin.o
+	g++ $(optdb) -o decstr-intrin $(optcpp) $(optavx) maind.o cpuinfo.o decstr-test.o decstr-intrin.o
+
+decstr-intrin.o: decstr.h decstr.c
+	gcc $(optdb) -o decstr-intrin.o -c $(optc) $(optavx) -DUSE_SIMD decstr.c
 
 decstr-x64: maind.o cpuinfo.o decstr-test.o decstr-x64.o
 	g++ $(optdb) -o decstr-x64 $(optcpp) $(optavx) maind.o cpuinfo.o decstr-test.o decstr-x64.o
@@ -188,4 +200,4 @@ hexstr-thumb.o: hexstr-thumb.s
 # Quietly clean up
 
 clean:
-	rm -f cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-neon64 hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-neon32 hexstr-thumb decstr-x64 decstr-sse decstr-avx a.out *.o
+	rm -f cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-neon64 hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-neon32 hexstr-thumb decstr-c decstr-intrin decstr-x64 decstr-sse decstr-avx a.out *.o

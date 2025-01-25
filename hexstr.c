@@ -11,6 +11,9 @@
 //     u8ToHexStr    8-bit  byte
 //     u4ToHexStr    4-bit  nibble
 
+#include <stdint.h>
+#include <stdalign.h>
+
 #if   defined(USE_SIMD) && defined(__aarch64__)
 
 #include <arm_neon.h>
@@ -44,23 +47,41 @@ union uint8x8 {
 const uint8_t convert0toA = 'A' - '0' - 10;     // val+'0' to val+'A'
 const uint8_t invert0ToA  = ~('A' - '0' - 10);  // Invert the bits for BIC
 
-static uint8_t ascii0[16] = { '0', '0', '0', '0', '0', '0', '0', '0',
-                              '0', '0', '0', '0', '0', '0', '0', '0' };
-static uint8_t ascii9[16] = { '9', '9', '9', '9', '9', '9', '9', '9',
-                              '9', '9', '9', '9', '9', '9', '9', '9' };
-static uint8_t af[16]     = { 'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
-                              'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
-                              'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
-                              'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
-                              'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
-                              'A' - '0' - 10 };
-static uint64_t   lo      = 0x0F0F0F0F0F0F0F0F;
-static uint8_t    invaf   = ~('A' - '0' - 10);
-static uint8_t    ho      = 0xF0;
+alignas(32)
+uint8_t ascii0[16] = { '0', '0', '0', '0', '0', '0', '0', '0',
+                       '0', '0', '0', '0', '0', '0', '0', '0' };
 
+alignas(32)
+uint8_t ascii9[16] = { '9', '9', '9', '9', '9', '9', '9', '9',
+                       '9', '9', '9', '9', '9', '9', '9', '9' };
+
+alignas(32)
+uint8_t af[16]     = { 'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
+                       'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
+                       'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
+                       'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
+                       'A' - '0' - 10, 'A' - '0' - 10, 'A' - '0' - 10,
+                       'A' - '0' - 10 };
+
+alignas(32)
 const char *lookup = "0123456789ABCDEF";
 
+alignas(32)
+uint64_t   lo      = 0x0F0F0F0F0F0F0F0F;
+uint8_t    invaf   = ~('A' - '0' - 10);
+uint8_t    ho      = 0xF0;
 
+
+
+//----------------------------------------------------------------------------
+// Convert value to zero terminated decimal string.
+// Arguments:
+//     buffer   Pointer to a buffer assumed to be large enough for
+//              string and null terminator, and assumed to be aligned to an
+//              even address.
+//     value    Numeric value to convert.
+// Return:
+//              Pointer to buffer
 
 const char *u64ToHexStr(char *buffer, uint64_t value) {
 #if defined(USE_SIMD) && defined(__aarch64__)
@@ -180,6 +201,8 @@ const char *u64ToHexStr(char *buffer, uint64_t value) {
 
 
 
+//----------------------------------------------------------------------------
+
 const char *u32ToHexStr(char *buffer, uint32_t value) {
 #if defined(USE_SIMD) && defined(__aarch64__)
 
@@ -290,6 +313,8 @@ const char *u32ToHexStr(char *buffer, uint32_t value) {
 
 
 
+//----------------------------------------------------------------------------
+
 const char *u16ToHexStr(char *buffer, uint16_t value) {
 #if defined(USE_SIMD) && defined(__aarch64__)
 
@@ -387,6 +412,7 @@ const char *u16ToHexStr(char *buffer, uint16_t value) {
     buffer[1] = lookup[(value >>  8) & 0x0F];
     buffer[2] = lookup[(value >>  4) & 0x0F];
     buffer[3] = lookup[ value        & 0x0F];
+    
 #endif
 
     buffer[4] = 0;
@@ -396,9 +422,10 @@ const char *u16ToHexStr(char *buffer, uint16_t value) {
 
 
 
+//----------------------------------------------------------------------------
 // For the smaller sizes just use a default C implementation
 
-const char *u8ToHexStr(char *buffer, uint8_t  value) {
+const char *u8ToHexStr(char *buffer, uint8_t value) {
     buffer[0] = lookup[(value >>  4) & 0x0F];
     buffer[1] = lookup[ value        & 0x0F];
     buffer[2] = 0;
@@ -406,7 +433,7 @@ const char *u8ToHexStr(char *buffer, uint8_t  value) {
     return buffer;
 }
 
-const char *u4ToHexStr(char *buffer, uint8_t  value) {
+const char *u4ToHexStr(char *buffer, uint8_t value) {
     buffer[0] = lookup[value & 0x0F];
     buffer[1] = 0;
 

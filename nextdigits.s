@@ -16,10 +16,18 @@
 # Return:
 #     RDX  Remainder
 
-            .macro  nextDigit, i
+            .macro  nextDigit64, i
             mov     rax, rdx                # Divide by current power of 10
             xor     rdx, rdx
             div     qword ptr [r8 + \i * 8]
+            add     al,  '0'                # Convert to ascii digit
+            mov     [rdi + \i], al
+            .endm
+
+            .macro  nextDigit32, i
+            mov     eax, edx                # Divide by current power of 10
+            xor     edx, edx
+            div     dword ptr [r8 + \i * 4]
             add     al,  '0'                # Convert to ascii digit
             mov     [rdi + \i], al
             .endm
@@ -35,8 +43,7 @@
 
             # SSE implementation
 
-            # 2 doubles
-            .macro      nextDigits2, i
+            .macro      sseNextDigits2, i
             movapd      xmm3, [r8 + \i * 8] # Divide by powers of 10
             movapd      xmm4, xmm0
             divpd       xmm4, xmm3
@@ -55,10 +62,24 @@
             mov         [rdi + \i + 1], al
             .endm
 
+            .macro      sseNextDigits1, i
+            movapd      xmm3, [r8 + \i * 8] # Divide by powers of 10
+            movapd      xmm4, xmm0
+            divpd       xmm4, xmm3
+            roundpd     xmm4, xmm4, 3       # Truncate for quotient
+            movapd      xmm5, xmm4          # Calculate mod 10
+            divpd       xmm5, xmm1
+            roundpd     xmm5, xmm5, 3
+            mulpd       xmm5, xmm1
+            subpd       xmm4, xmm5
+            cvtsd2si    rax,  xmm4          # Convert first modulus to int
+            add         al,   '0'           # Convert to ascii digit
+            mov         [rdi + \i], al
+            .endm
+
             # AVX implementations
 
-            # 4 doubles
-            .macro      nextDigits4, i
+            .macro      avxNextDigits4, i
             vmovapd     ymm3, [r8 + \i * 8] # Divide by current powers of 10
             vdivpd      ymm4, ymm0, ymm3
             vroundpd    ymm4, ymm4, 3       # Truncate for quotient
@@ -79,8 +100,43 @@
             mov         [rdi + \i + 3], al
             .endm
 
-            # 6 floats
-            .macro      nextDigits6, i
+            .macro      avxNextDigits3, i
+            vmovapd     ymm3, [r8 + \i * 8] # Divide by current powers of 10
+            vdivpd      ymm4, ymm0, ymm3
+            vroundpd    ymm4, ymm4, 3       # Truncate for quotient
+            vdivpd      ymm5, ymm4, ymm1    # Calculate mod 10
+            vroundpd    ymm5, ymm5, 3
+            vmulpd      ymm5, ymm5, ymm1
+            vsubpd      ymm4, ymm4, ymm5
+            vcvtpd2ps   xmm4, ymm4          # Convert to float
+            cvtps2dq    xmm4, xmm4          # Convert to int
+            paddd       xmm4, xmm2          # Convert to ascii
+            movd        eax,  xmm4          # Extract first digit
+            mov         [rdi + \i], al
+            pextrd      eax,  xmm4, 1       # Extract second digit
+            mov         [rdi + \i + 1], al
+            pextrd      eax,  xmm4, 2       # Extract third digit
+            mov         [rdi + \i + 2], al
+            .endm
+
+            .macro      avxNextDigits2, i
+            vmovapd     ymm3, [r8 + \i * 8] # Divide by current powers of 10
+            vdivpd      ymm4, ymm0, ymm3
+            vroundpd    ymm4, ymm4, 3       # Truncate for quotient
+            vdivpd      ymm5, ymm4, ymm1    # Calculate mod 10
+            vroundpd    ymm5, ymm5, 3
+            vmulpd      ymm5, ymm5, ymm1
+            vsubpd      ymm4, ymm4, ymm5
+            vcvtpd2ps   xmm4, ymm4          # Convert to float
+            cvtps2dq    xmm4, xmm4          # Convert to int
+            paddd       xmm4, xmm2          # Convert to ascii
+            movd        eax,  xmm4          # Extract first digit
+            mov         [rdi + \i], al
+            pextrd      eax,  xmm4, 1       # Extract second digit
+            mov         [rdi + \i + 1], al
+            .endm
+
+            .macro      avxNextDigits6, i
             vmovaps     ymm3, [r8 + \i * 4] # Divide by current powers of 10
             vdivps      ymm4, ymm0, ymm3
             vroundps    ymm4, ymm4, 3       # Truncate for quotient
@@ -103,7 +159,7 @@
             mov         [rdi + \i + 4], al
             pextrd      eax,  xmm4, 1       # Extract sixth digit
             mov         [rdi + \i + 5], al
-.endm
+            .endm
 
 
 
@@ -111,10 +167,10 @@
 
             .text
 
-# 20 and 10 digit integer divisor table
+# 20 digit integer divisor tables
 
             .balign 32
-ten19u:     .quad   10000000000000000000    # 64-bit: 20 digits
+ten19u:     .quad   10000000000000000000    # 64-bits: First 11 digits
             .quad   1000000000000000000
             .quad   100000000000000000
             .quad   10000000000000000
@@ -124,59 +180,79 @@ ten19u:     .quad   10000000000000000000    # 64-bit: 20 digits
             .quad   1000000000000
             .quad   100000000000
             .quad   10000000000
-ten9u:      .quad   1000000000              # 32-bit: 10 digits
-            .quad   100000000
-            .quad   10000000
-            .quad   1000000
-            .quad   100000
-            .quad   10000
-            .quad   1000
-            .quad   100
-            .quad   10
-            .quad   1
-
-# 14 digit floating point divisor table
+            .quad   1000000000
+            .quad   1                       # For disregarded lane
 
             .balign 32
-ten13fp:    .double 10000000000000.0        # Limitted to 51-bit values
+ten8u:      .long   100000000               # 32-bits: Last 9 digits
+            .long   10000000
+            .long   1000000
+            .long   100000
+            .long   10000
+            .long   1000
+            .long   100
+            .long   10
+            .long   1
+            .long   1                       # For 3 disregarded lanes
+            .long   1
+            .long   1
+
+# 10 digit integer divisor table
+
+            .balign 32
+ten9u:      .long   1000000000              # 32-bits: All 10 digits
+            .long   100000000
+            .long   10000000
+            .long   1000000
+            .long   100000
+            .long   10000
+            .long   1000
+            .long   100
+            .long   10
+            .long   1
+            .long   1                       # For 3 disregarded lanes
+            .long   1
+
+# 15 digit floating point divisor table
+
+            .balign 32
+ten14fp:    .double 100000000000000.0       # Limitted to 52-bit values
+            .double 10000000000000.0
             .double 1000000000000.0
             .double 100000000000.0
             .double 10000000000.0
+            .double 1000000000.0            # 32-bit: 10 digits
+            .double 100000000.0
+            .double 10000000.0
+            .double 1000000.0
+            .double 100000.0
+            .double 10000.0
+            .double 1000.0
+            .double 100.0
+            .double 10.0
+            .double 1.0
+            .double 1.0                     # For disregarded lane
+
+# 10 digit floating point divisor table
+
+            .balign 32
 ten9fp:     .double 1000000000.0            # 32-bit: 10 digits
             .double 100000000.0
             .double 10000000.0
             .double 1000000.0
-            .double 100000.0
+            .double 100000.0                # Limitted to 23-bit values
             .double 10000.0
             .double 1000.0
             .double 100.0
             .double 10.0
             .double 1.0
-            .double 1.0                     # For 2 disregarded lanes
+            .double 1.0                     # For 2 disregarded lane2
             .double 1.0
 
-# 12 digit floating point divisor table.
-# Needed 12 digit entry with an aligned address.
+# 6 digit floating point divisor table
 
             .balign 32
-ten11fp:    .double 100000000000.0          # Limitted to 51-bit values
-            .double 10000000000.0
-            .double 1000000000.0
-            .double 100000000.0
-            .double 10000000.0
-            .double 1000000.0
-            .double 100000.0
-            .double 10000.0
-            .double 1000.0
-            .double 100.0
-            .double 10.0
-            .double 1.0
-
-# 6 digit floating point divisor table.
-# Needed float rather than double.
-
-            .balign 32
-ten5fp:     .float  100000.0                # 32-bit: 6 digits
+ten5fp:     .float  100000.0                # Limitted to 23-bit values
             .float  10000.0
             .float  1000.0
             .float  100.0
