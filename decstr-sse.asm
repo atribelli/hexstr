@@ -51,27 +51,27 @@ u64ToDecStr proc
 
             lea         r8,   ten19u        ; Integer divisors
 
-            nextDigit   0                   ; First 6 digits
-            nextDigit   1
-            nextDigit   2
-            nextDigit   3
-            nextDigit   4
-            nextDigit   5
+            nextDigit64 0                   ; First 5 digits
+            nextDigit64 1
+            nextDigit64 2
+            nextDigit64 3
+            nextDigit64 4
 
             ; Switch to SSE code
 
             cvtsi2sd    xmm0, rdx           ; Convert to double
             shufpd      xmm0, xmm0, 0       ; Duplicate in lane 1
             movapd      xmm1, tend          ; Need 10 for mod calulation
-            lea         r8,   ten13fp - 6 * 8 ; Floating point divisors
+            lea         r8,   ten14fp - 5 * 8 ; Floating point divisors
                                             ; R8 is offset due to non zero index
-            nextDigits2 6                   ; Remaining 14 digits
-            nextDigits2 8
-            nextDigits2 10
-            nextDigits2 12
-            nextDigits2 14
-            nextDigits2 16
-            nextDigits2 18
+            sseNextDigits2 5                ; Last 15 digits
+            sseNextDigits2 7
+            sseNextDigits2 9
+            sseNextDigits2 11
+            sseNextDigits2 13
+            sseNextDigits2 15
+            sseNextDigits2 17
+            sseNextDigits1 19
 
             mov         byte ptr [rcx + 20], 0 ; Null terminator
             mov         rax,  rcx           ; Return original pointer
@@ -101,11 +101,11 @@ u32ToDecStr proc
             movapd      xmm1, tend          ; Need 10 for mod calulation
             lea         r8,   ten9fp        ; Floating point divisors
 
-            nextDigits2 0
-            nextDigits2 2
-            nextDigits2 4
-            nextDigits2 6
-            nextDigits2 8
+            sseNextDigits2 0                ; All 10 gigits
+            sseNextDigits2 2
+            sseNextDigits2 4
+            sseNextDigits2 6
+            sseNextDigits2 8
 
             mov         byte ptr [rcx + 10], 0 ; Null terminator
             mov         rax,  rcx           ; Return original pointer

@@ -46,25 +46,28 @@ s64ToDecStr endp
 u64ToDecStr proc
             lea     r8, ten19u              ; Divisors
 
-            nextDigit 0
-            nextDigit 1
-            nextDigit 2
-            nextDigit 3
-            nextDigit 4
-            nextDigit 5
-            nextDigit 6
-            nextDigit 7
-            nextDigit 8
-            nextDigit 9
-            nextDigit 10
-            nextDigit 11
-            nextDigit 12
-            nextDigit 13
-            nextDigit 14
-            nextDigit 15
-            nextDigit 16
-            nextDigit 17
-            nextDigit 18
+            nextDigit64 0                   ; First 11 digits
+            nextDigit64 1
+            nextDigit64 2
+            nextDigit64 3
+            nextDigit64 4
+            nextDigit64 5
+            nextDigit64 6
+            nextDigit64 7
+            nextDigit64 8
+            nextDigit64 9
+            nextDigit64 10
+
+            lea     r8, ten8u - 11 * 4      ; Divisors, offset by index
+
+            nextDigit32 11                  ; Next 8 digits
+            nextDigit32 12
+            nextDigit32 13
+            nextDigit32 14
+            nextDigit32 15
+            nextDigit32 16
+            nextDigit32 17
+            nextDigit32 18
 
             add     dl, '0'                 ; 20th digit is remainder
             mov     [rcx + 19], dl
@@ -93,15 +96,15 @@ u32ToDecStr proc
             mov     edx,  edx               ; Clear upper dword
             lea     r8, ten9u               ; Divisors
 
-            nextDigit 0
-            nextDigit 1
-            nextDigit 2
-            nextDigit 3
-            nextDigit 4
-            nextDigit 5
-            nextDigit 6
-            nextDigit 7
-            nextDigit 8
+            nextDigit32 0
+            nextDigit32 1
+            nextDigit32 2
+            nextDigit32 3
+            nextDigit32 4
+            nextDigit32 5
+            nextDigit32 6
+            nextDigit32 7
+            nextDigit32 8
 
             add     dl, '0'                 ; 10th digit is remainder
             mov     [rcx + 9], dl

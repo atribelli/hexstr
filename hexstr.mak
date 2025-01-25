@@ -6,7 +6,8 @@ optc   = /std:c17 /O2 /EHsc
 # General C / C++ code and intrinsics
 
 all: cpuid.exe hexstr-c.exe hexstr-intrin.exe hexstr-x64.exe hexstr-sse.exe \
-     hexstr-avx.exe decstr-x64.exe decstr-sse.exe decstr-avx.exe
+     hexstr-avx.exe decstr-c.exe decstr-intrin.exe decstr-x64.exe \
+	 decstr-sse.exe decstr-avx.exe
 
 cpuid.exe: cpuid.obj cpuinfo.obj
 	cl /Fecpuid $(optc) cpuinfo.obj cpuid.obj
@@ -52,6 +53,18 @@ hexstr-test.obj: hexstr.h hexstr-test.h hexstr-test.cpp
 
 mainh.obj: hexstr.h mainh.cpp
 	cl /c $(optcpp) mainh.cpp
+
+decstr-c.exe: maind.obj cpuinfo.obj decstr-test.obj decstr-c.obj
+	cl /Fedecstr-c $(optcpp) maind.obj cpuinfo.obj decstr-test.obj decstr-c.obj
+
+decstr-c.obj: decstr.h decstr.c
+	cl /Fodecstr-c /c $(optc) decstr.c
+
+decstr-intrin.exe: maind.obj cpuinfo.obj decstr-test.obj decstr-intrin.obj
+	cl /Fedecstr-intrin $(optcpp) maind.obj cpuinfo.obj decstr-test.obj decstr-intrin.obj
+
+decstr-intrin.obj: decstr.h decstr.c
+	cl /Fodecstr-intrin /c $(optc) /DUSE_SIMD decstr.c
 
 decstr-x64.exe: maind.obj cpuinfo.obj decstr-test.obj decstr-x64.obj
 	cl /Fedecstr-x64 $(optcpp) maind.obj cpuinfo.obj decstr-test.obj decstr-x64.obj

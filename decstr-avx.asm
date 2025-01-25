@@ -51,12 +51,11 @@ u64ToDecStr proc
 
             lea         r8,   ten19u        ; Integer divisors
 
-            nextDigit   0                   ; First 6 digits
-            nextDigit   1
-            nextDigit   2
-            nextDigit   3
-            nextDigit   4
-            nextDigit   5
+            nextDigit64 0                   ; First 5 digits
+            nextDigit64 1
+            nextDigit64 2
+            nextDigit64 3
+            nextDigit64 4
 
             ; Switch to AVX code
 
@@ -64,15 +63,12 @@ u64ToDecStr proc
             vbroadcastsd ymm0, xmm0         ; Duplicate in lanes 1, 2, 3
             vmovapd     ymm1, tend          ; Need 10 for mod calulation
             vmovdqa     ymm2, ymmword ptr zero ; Need ascii zero
-            lea         r8,   ten13fp - 6 * 8 ; Floating point divisors
+            lea         r8,   ten14fp - 5 * 8 ; Floating point divisors
                                             ; R8 is offset for non zero index
-            nextDigits2 6                   ; Next 2 digits
-
-            lea         r8,   ten11fp - 8 * 8 ; Floating point divisors
-                                            ; R8 is offset for non zero index
-            nextDigits4 8                   ; Remaining 12 digits
-            nextDigits4 12
-            nextDigits4 16
+            avxNextDigits4 5                ; Last 15 digits
+            avxNextDigits4 9
+            avxNextDigits4 13
+            avxNextDigits3 17
 
             mov         byte ptr [rcx + 20], 0 ; Null terminator
             mov         rax,  rcx           ; Return original pointer
@@ -101,22 +97,10 @@ u32ToDecStr proc
             vbroadcastsd ymm0, xmm0         ; Duplicate in lanes 1, 2, 3
             vmovapd     ymm1, tend          ; Need 10 for mod calulation
             vmovdqa     ymm2, ymmword ptr zero ; Need ascii zero
-            
-            lea         r8,   ten9fp        ; Double divisors
-            nextDigits4 0                   ; First 4 digits
-            
-            mov         eax,  1000000       ; Remove the first four digits
-            cvtsi2sd    xmm1, eax           ;   of the original value
-            vdivsd      xmm3, xmm0, xmm1    ;   so we can continue
-            roundsd     xmm3, xmm3, 3       ;   calculations using floats
-            vmulsd      xmm3, xmm3, xmm1
-            vsubsd      xmm0, xmm0, xmm3
-            cvtsd2ss    xmm0, xmm0
-            vbroadcastss ymm0, xmm0         ; Duplicate in lanes 1 ... 7
-
-            vmovaps     ymm1, tenf     ; Switch to floats
-            lea         r8,   ten5fp - 4 * 4
-            nextDigits6 4                   ; Remaining 6 digits
+            lea         r8,   ten9fp        ; Floating point divisors
+            avxNextDigits4 0                ; All 10 gigits
+            avxNextDigits4 4
+            avxNextDigits2 8
 
             mov         byte ptr [rcx + 10], 0 ; Null terminator
             mov         rax,  rcx           ; Return original pointer

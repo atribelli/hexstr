@@ -136,31 +136,6 @@
             mov         [rdi + \i + 1], al
             .endm
 
-            .macro      avxNextDigits6, i
-            vmovaps     ymm3, [r8 + \i * 4] # Divide by current powers of 10
-            vdivps      ymm4, ymm0, ymm3
-            vroundps    ymm4, ymm4, 3       # Truncate for quotient
-            vdivps      ymm5, ymm4, ymm1    # Calculate mod 10
-            vroundps    ymm5, ymm5, 3
-            vmulps      ymm5, ymm5, ymm1
-            vsubps      ymm4, ymm4, ymm5
-            vcvtps2dq   ymm4, ymm4          # Convert to int
-            vpaddd      ymm4, ymm4, ymm2    # Convert to ascii
-            movd        eax,  xmm4          # Extract first digit
-            mov         [rdi + \i], al
-            pextrd      eax,  xmm4, 1       # Extract second digit
-            mov         [rdi + \i + 1], al
-            pextrd      eax,  xmm4, 2       # Extract third digit
-            mov         [rdi + \i + 2], al
-            pextrd      eax,  xmm4, 3       # Extract fourth digit
-            mov         [rdi + \i + 3], al
-            vextractf128 xmm4, ymm4, 1      # Extract fifth digit
-            movd        eax,  xmm4
-            mov         [rdi + \i + 4], al
-            pextrd      eax,  xmm4, 1       # Extract sixth digit
-            mov         [rdi + \i + 5], al
-            .endm
-
 
 
 #-----------------------------------------------------------------------------
@@ -210,7 +185,7 @@ ten9u:      .long   1000000000              # 32-bits: All 10 digits
             .long   100
             .long   10
             .long   1
-            .long   1                       # For 3 disregarded lanes
+            .long   1                       # For 2 disregarded lanes
             .long   1
 
 # 15 digit floating point divisor table
