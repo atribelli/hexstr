@@ -33,6 +33,8 @@ hexstr-thumb.s - ARMv7-A thumb implementation.
 hexstr-x64.asm - x86-64 assembly implementation (masm).  
 hexstr-sse.asm - SSE implementation (masm).  
 hexstr-avx.asm - AVX implementation (masm).  
+decstr.h - Prototypes for decimal string conversion functions.  
+decstr.c - C and SSE and NEON intrinsic implementations.  
 decstr-test.h  
 decstr-test.cpp - Result testing.  
 decstr-x64.s - x86-64 assembly implementation (gas).  
@@ -88,6 +90,10 @@ as  -o hexstr-avx.o  hexstr-avx.s
 g++  -o hexstr-avx -std=c++17 -O3 -march=haswell mainh.o cpuinfo.o hexstr-test.o hexstr-avx.o
 g++  -c -std=c++17 -O3 -march=haswell -o maind.o maind.cpp
 g++  -c -std=c++17 -O3 -march=haswell -o decstr-test.o decstr-test.cpp
+gcc  -o decstr-c.o -c -std=c17 -O3 -march=haswell decstr.c
+g++  -o decstr-c -std=c++17 -O3 -march=haswell maind.o cpuinfo.o decstr-test.o decstr-c.o
+gcc  -o decstr-intrin.o -c -std=c17 -O3 -march=haswell -DUSE_SIMD decstr.c
+g++  -o decstr-intrin -std=c++17 -O3 -march=haswell maind.o cpuinfo.o decstr-test.o decstr-intrin.o
 as  -o decstr-x64.o  decstr-x64.s
 g++  -o decstr-x64 -std=c++17 -O3 -march=haswell maind.o cpuinfo.o decstr-test.o decstr-x64.o
 as  -o decstr-sse.o  decstr-sse.s
@@ -95,7 +101,7 @@ g++  -o decstr-sse -std=c++17 -O3 -march=haswell maind.o cpuinfo.o decstr-test.o
 as  -o decstr-avx.o  decstr-avx.s
 g++  -o decstr-avx -std=c++17 -O3 -march=haswell maind.o cpuinfo.o decstr-test.o decstr-avx.o
 % ./hexstr-c
-GenuineIntel Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz
+GenuineIntel Intel(R) Core(TM) i5-8500B CPU @ 3.00GHz
 SSE3 SSE4.2 AVX AVX2 GEN4 
 Tests complete
 FEDCBA9876543210
@@ -105,42 +111,42 @@ FEDCBA9876543210 0123456789ABCDEF
 10 EF
 0 F
 iterations: 100,000,000
-snprintf: 72.47 ns
-u64:      6.97 ns
-u32:      4.26 ns
-u16:      2.64 ns
-u8:       2.14 ns
-u4:       1.47 ns
-% ./hexstr-intrin
+snprintf: 67.83 ns
+u64:      6.52 ns
+u32:      3.99 ns
+u16:      2.49 ns
+u8:       2.02 ns
+u4:       1.39 ns
+% ./hexstr-x64
 ...
-u64:      2.12 ns
-u32:      2.01 ns
-u16:      1.87 ns
-u8:       2.15 ns
-u4:       1.47 ns
-% ./hexstr-x64   
+u64:      5.77 ns
+u32:      3.29 ns
+u16:      2.08 ns
+u8:       1.59 ns
+u4:       1.25 ns
+% ./hexstr-intrin 
 ...
-u64:      6.18 ns
-u32:      3.54 ns
-u16:      2.21 ns
-u8:       1.82 ns
-u4:       1.35 ns
-% ./hexstr-sse
+u64:      2.02 ns
+u32:      2.10 ns
+u16:      2.27 ns
+u8:       1.74 ns
+u4:       1.37 ns
+% ./hexstr-sse   
 ...
-u64:      1.86 ns
-u32:      1.74 ns
-u16:      1.94 ns
-u8:       1.92 ns
-u4:       1.34 ns
+u64:      1.74 ns
+u32:      1.63 ns
+u16:      1.74 ns
+u8:       1.72 ns
+u4:       1.24 ns
 % ./hexstr-avx
 ...
-u64:      1.68 ns
-u32:      1.61 ns
-u16:      1.74 ns
-u8:       1.90 ns
-u4:       1.34 ns
-% ./decstr-x64
-GenuineIntel Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz
+u64:      1.55 ns
+u32:      1.51 ns
+u16:      1.61 ns
+u8:       1.75 ns
+u4:       1.25 ns
+% ./decstr-c     
+GenuineIntel Intel(R) Core(TM) i5-8500B CPU @ 3.00GHz
 SSE3 SSE4.2 AVX AVX2 GEN4 
 Tests complete
 18446744073709551615
@@ -148,30 +154,46 @@ Tests complete
 4294967295
 4294967295 2147483647 -2147483647
 iterations: 10,000,000
-snprintf64: 85.46 ns
-u64:        156.04 ns
-s64:        156.71 ns
-s64:        156.56 ns
-snprintf32: 69.46 ns
-u32:        65.98 ns
-s32:        66.14 ns
-s32:        66.98 ns
-% ./decstr-sse
+snprintf64: 78.71 ns
+u64:        121.68 ns
+s64:        123.83 ns
+s64:        124.77 ns
+snprintf32: 64.14 ns
+u32:        36.49 ns
+s32:        36.60 ns
+s32:        36.29 ns
+% ./decstr-x64
 ...
-u64:        82.71 ns
-s64:        81.59 ns
-s64:        82.50 ns
-u32:        20.58 ns
-s32:        20.41 ns
-s32:        20.71 ns
+u64:        115.61 ns
+s64:        116.41 ns
+s64:        116.68 ns
+u32:        31.82 ns
+s32:        32.51 ns
+s32:        34.68 ns
+% ./decstr-intrin 
+...
+u64:        71.84 ns
+s64:        72.74 ns
+s64:        73.11 ns
+u32:        24.91 ns
+s32:        24.95 ns
+s32:        24.14 ns
+% ./decstr-sse   
+...
+u64:        69.52 ns
+s64:        69.08 ns
+s64:        69.81 ns
+u32:        19.31 ns
+s32:        19.32 ns
+s32:        19.81 ns
 % ./decstr-avx
 ...
-u64:        80.30 ns
-s64:        80.72 ns
-s64:        80.81 ns
-u32:        18.08 ns
-s32:        23.17 ns
-s32:        21.91 ns
+u64:        65.59 ns
+s64:        66.08 ns
+s64:        66.07 ns
+u32:        19.25 ns
+s32:        16.37 ns
+s32:        23.10 ns
 ```
 
 ## To-do
