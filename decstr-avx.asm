@@ -101,7 +101,7 @@ u32ToDecStr proc
 
             avxNextDigits4 0                ; First 4 digits
 
-            vmovsd      xmm3, firstfourd[rip] ; Remove first four digits
+            vmovsd      xmm3, firstfourd    ; Remove first four digits
             vdivsd      xmm4, xmm0, xmm3
             roundsd     xmm4, xmm4, 3
             vmulsd      xmm4, xmm4, xmm3
@@ -109,10 +109,10 @@ u32ToDecStr proc
             cvtsd2ss    xmm0, xmm0          ; Switch to floats
             vbroadcastss ymm0, xmm0         ; Duplicate in lanes 1 ... 7
 
-            vmovaps     ymm1, tens[rip]
-            lea         r8,   ten5s[rip - 4 * 4]
+            vmovaps     ymm1, tens
+            lea         r8,   ten5s - 4 * 4
 
-            avxNextDigits6 4                # Last 6 digits
+            avxNextDigits6 4                ; Last 6 digits
 
             mov         byte ptr [rcx + 10], 0 ; Null terminator
             mov         rax,  rcx           ; Return original pointer

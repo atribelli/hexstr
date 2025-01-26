@@ -251,3 +251,28 @@ avxNextDigits2 macro    i
             pextrd      eax,  xmm4, 1       ; Extract second digit
             mov         [rcx + i + 1], al
             endm
+
+avxNextDigits6 macro    i
+            vmovaps     ymm3, [r8 + i * 4]  ; Divide by current powers of 10
+            vdivps      ymm4, ymm0, ymm3
+            vroundps    ymm4, ymm4, 3       ; Truncate for quotient
+            vdivps      ymm5, ymm4, ymm1    ; Calculate mod 10
+            vroundps    ymm5, ymm5, 3
+            vmulps      ymm5, ymm5, ymm1
+            vsubps      ymm4, ymm4, ymm5
+            vcvtps2dq   ymm4, ymm4          ; Convert to int
+            vpaddd      ymm4, ymm4, ymm2    ; Convert to ascii
+            movd        eax,  xmm4          ; Extract first digit
+            mov         [rcx + i], al
+            pextrd      eax,  xmm4, 1       ; Extract second digit
+            mov         [rcx + i + 1], al
+            pextrd      eax,  xmm4, 2       ; Extract third digit
+            mov         [rcx + i + 2], al
+            pextrd      eax,  xmm4, 3       ; Extract fourth digit
+            mov         [rcx + i + 3], al
+            vextractf128 xmm4, ymm4, 1      ; Extract fifth digit
+            movd        eax,  xmm4
+            mov         [rcx + i + 4], al
+            pextrd      eax,  xmm4, 1       ; Extract sixth digit
+            mov         [rcx + i + 5], al
+            endm
