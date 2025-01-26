@@ -136,6 +136,31 @@
             mov         [rdi + \i + 1], al
             .endm
 
+            .macro      avxNextDigits6, i
+            vmovaps     ymm3, [r8 + \i * 4] # Divide by current powers of 10
+            vdivps      ymm4, ymm0, ymm3
+            vroundps    ymm4, ymm4, 3       # Truncate for quotient
+            vdivps      ymm5, ymm4, ymm1    # Calculate mod 10
+            vroundps    ymm5, ymm5, 3
+            vmulps      ymm5, ymm5, ymm1
+            vsubps      ymm4, ymm4, ymm5
+            vcvtps2dq   ymm4, ymm4          # Convert to int
+            vpaddd      ymm4, ymm4, ymm2    # Convert to ascii
+            movd        eax,  xmm4          # Extract first digit
+            mov         [rdi + \i], al
+            pextrd      eax,  xmm4, 1       # Extract second digit
+            mov         [rdi + \i + 1], al
+            pextrd      eax,  xmm4, 2       # Extract third digit
+            mov         [rdi + \i + 2], al
+            pextrd      eax,  xmm4, 3       # Extract fourth digit
+            mov         [rdi + \i + 3], al
+            vextractf128 xmm4, ymm4, 1      # Extract fifth digit
+            movd        eax,  xmm4
+            mov         [rdi + \i + 4], al
+            pextrd      eax,  xmm4, 1       # Extract sixth digit
+            mov         [rdi + \i + 5], al
+            .endm
+
 
 
 #-----------------------------------------------------------------------------
@@ -145,7 +170,7 @@
 # 20 digit integer divisor tables
 
             .balign 32
-ten19u:     .quad   10000000000000000000    # 64-bits: First 11 digits
+ten19qw:    .quad   10000000000000000000    # 64-bits: First 11 digits
             .quad   1000000000000000000
             .quad   100000000000000000
             .quad   10000000000000000
@@ -159,7 +184,7 @@ ten19u:     .quad   10000000000000000000    # 64-bits: First 11 digits
             .quad   1                       # For disregarded lane
 
             .balign 32
-ten8u:      .long   100000000               # 32-bits: Last 9 digits
+ten8dw:     .long   100000000               # 32-bits: Last 9 digits
             .long   10000000
             .long   1000000
             .long   100000
@@ -175,7 +200,7 @@ ten8u:      .long   100000000               # 32-bits: Last 9 digits
 # 10 digit integer divisor table
 
             .balign 32
-ten9u:      .long   1000000000              # 32-bits: All 10 digits
+ten9dw:     .long   1000000000              # 32-bits: All 10 digits
             .long   100000000
             .long   10000000
             .long   1000000
@@ -191,7 +216,7 @@ ten9u:      .long   1000000000              # 32-bits: All 10 digits
 # 15 digit floating point divisor table
 
             .balign 32
-ten14fp:    .double 100000000000000.0       # Limitted to 52-bit values
+ten14d:     .double 100000000000000.0       # Limitted to 52-bit values
             .double 10000000000000.0
             .double 1000000000000.0
             .double 100000000000.0
@@ -211,7 +236,7 @@ ten14fp:    .double 100000000000000.0       # Limitted to 52-bit values
 # 10 digit floating point divisor table
 
             .balign 32
-ten9fp:     .double 1000000000.0            # 32-bit: 10 digits
+ten9d:      .double 1000000000.0            # 32-bit: 10 digits
             .double 100000000.0
             .double 10000000.0
             .double 1000000.0
@@ -227,7 +252,7 @@ ten9fp:     .double 1000000000.0            # 32-bit: 10 digits
 # 6 digit floating point divisor table
 
             .balign 32
-ten5fp:     .float  100000.0                # Limitted to 23-bit values
+ten5s:      .float  100000.0                # Limitted to 23-bit values
             .float  10000.0
             .float  1000.0
             .float  100.0
@@ -240,11 +265,12 @@ ten5fp:     .float  100000.0                # Limitted to 23-bit values
 
             .balign 32
 tend:       .double 10.0, 10.0, 10.0, 10.0
-
-            .balign 32
-tenf:       .float  10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0
+tens:       .float  10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0
 
 # Constant ascii zero
 
             .balign 32
-zero:       .long   '0', '0', '0', '0', '0', '0', '0', '0'
+zerodw:     .long   '0', '0', '0', '0', '0', '0', '0', '0'
+
+            .balign 32
+firstfourd: .quad   1000000.0, 1000000.0, 1000000.0, 1000000.0

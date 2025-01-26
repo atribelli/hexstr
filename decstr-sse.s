@@ -57,7 +57,7 @@ _u64ToDecStr:
             # too large to fit in a double.
 
             mov         rdx,  rsi           # Use div remainder register
-            lea         r8,   ten19u[rip]   # Integer divisors
+            lea         r8,   ten19qw[rip]  # Integer divisors
 
             nextDigit64 0                   # First 5 digits
             nextDigit64 1
@@ -70,7 +70,7 @@ _u64ToDecStr:
             cvtsi2sd    xmm0, rdx           # Convert to double
             movddup     xmm0, xmm0          # Duplicate in lane 1
             movddup     xmm1, tend[rip]     # Need 10 for mod calulation
-            lea         r8,   ten14fp[rip - 5 * 8] # Floating point divisors,
+            lea         r8,   ten14d[rip - 5 * 8] # Floating point divisors,
                                             # R8 is offset due to non zero index
             sseNextDigits2 5                # Last 15 digits
             sseNextDigits2 7
@@ -107,9 +107,9 @@ _u32ToDecStr:
             cvtsi2sd    xmm0, rsi           # Convert to double
             movddup     xmm0, xmm0          # Duplicate in lane 1
             movddup     xmm1, tend[rip]     # Need 10 for mod calulation
-            lea         r8,   ten9fp[rip]   # Floating point divisors
+            lea         r8,   ten9d[rip]    # Floating point divisors
 
-            sseNextDigits2 0                # All 10 gigits
+            sseNextDigits2 0                # All 10 digits
             sseNextDigits2 2
             sseNextDigits2 4
             sseNextDigits2 6

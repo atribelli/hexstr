@@ -11,7 +11,7 @@ tables      segment readonly align(32) 'const'
 ; 20 digit integer divisor tables
 
             align   32
-ten19u      qword   10000000000000000000    ; 64-bit: 20 digits
+ten19qw     qword   10000000000000000000    ; 64-bit: 20 digits
             qword   1000000000000000000
             qword   100000000000000000
             qword   10000000000000000
@@ -25,7 +25,7 @@ ten19u      qword   10000000000000000000    ; 64-bit: 20 digits
             qword   1                       ; For disregarded lane
 
             align   32
-ten8u       dword   100000000               ; 32-bits: Last 9 digits
+ten8dw      dword   100000000               ; 32-bits: Last 9 digits
             dword   10000000
             dword   1000000
             dword   100000
@@ -41,7 +41,7 @@ ten8u       dword   100000000               ; 32-bits: Last 9 digits
 ; 10 digit integer divisor table
 
             align   32
-ten9u       dword   1000000000              ; 32-bits: All 10 digits
+ten9dw      dword   1000000000              ; 32-bits: All 10 digits
             dword   100000000
             dword   10000000
             dword   1000000
@@ -57,7 +57,7 @@ ten9u       dword   1000000000              ; 32-bits: All 10 digits
 ; 15 digit floating point divisor table
 
             align   32
-ten14fp     real8   100000000000000.0       ; Limitted to 52-bit values
+ten14d      real8   100000000000000.0       ; Limitted to 52-bit values
             real8   10000000000000.0
             real8   1000000000000.0
             real8   100000000000.0
@@ -77,7 +77,7 @@ ten14fp     real8   100000000000000.0       ; Limitted to 52-bit values
 ; 10 digit floating point divisor table
 
             align   32
-ten9fp      real8   1000000000.0            ; 32-bit: 10 digits
+ten9d       real8   1000000000.0            ; 32-bit: 10 digits
             real8   100000000.0
             real8   10000000.0
             real8   1000000.0
@@ -93,7 +93,7 @@ ten9fp      real8   1000000000.0            ; 32-bit: 10 digits
 ; 6 digit floating point divisor table
 
             align   32
-ten5fp      real4   100000.0                ; Limitted to 23-bit values
+ten5s       real4   100000.0                ; Limitted to 23-bit values
             real4   10000.0
             real4   1000.0
             real4   100.0
@@ -106,14 +106,15 @@ ten5fp      real4   100000.0                ; Limitted to 23-bit values
 
             align   32
 tend        real8   10.0, 10.0, 10.0, 10.0
-
-            align   32
-tenf        real4   10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0
+tens        real4   10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0
 
 ; Constant ascii zero
 
             align   32
-zero        dword   '0', '0', '0', '0', '0', '0', '0', '0'
+zerodw      dword   '0', '0', '0', '0', '0', '0', '0', '0'
+
+            align   32
+firstfourd  real8   1000000.0, 1000000.0, 1000000.0, 1000000.0
 
 tables      ends
 

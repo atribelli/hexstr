@@ -49,7 +49,7 @@ u64ToDecStr proc
             ; Use x86 code for values that are
             ; too large to fit in a double.
 
-            lea         r8,   ten19u        ; Integer divisors
+            lea         r8,   ten19qw       ; Integer divisors
 
             nextDigit64 0                   ; First 5 digits
             nextDigit64 1
@@ -62,7 +62,7 @@ u64ToDecStr proc
             cvtsi2sd    xmm0, rdx           ; Convert to double
             shufpd      xmm0, xmm0, 0       ; Duplicate in lane 1
             movapd      xmm1, tend          ; Need 10 for mod calulation
-            lea         r8,   ten14fp - 5 * 8 ; Floating point divisors
+            lea         r8,   ten14d - 5 * 8 ; Floating point divisors
                                             ; R8 is offset due to non zero index
             sseNextDigits2 5                ; Last 15 digits
             sseNextDigits2 7
@@ -99,9 +99,9 @@ u32ToDecStr proc
             cvtsi2sd    xmm0, rdx           ; Convert to double
             shufpd      xmm0, xmm0, 0       ; Duplicate in lane 1
             movapd      xmm1, tend          ; Need 10 for mod calulation
-            lea         r8,   ten9fp        ; Floating point divisors
+            lea         r8,   ten9d         ; Floating point divisors
 
-            sseNextDigits2 0                ; All 10 gigits
+            sseNextDigits2 0                ; All 10 digits
             sseNextDigits2 2
             sseNextDigits2 4
             sseNextDigits2 6

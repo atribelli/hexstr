@@ -57,7 +57,7 @@ _u64ToDecStr:
             # too large to fit in a double without rounding.
 
             mov         rdx,  rsi           # Use div remainder register
-            lea         r8,   ten19u[rip]   # Integer divisors
+            lea         r8,   ten19qw[rip]  # Integer divisors
 
             nextDigit64 0                   # First 5 digits
             nextDigit64 1
@@ -70,8 +70,8 @@ _u64ToDecStr:
             cvtsi2sd    xmm0, rdx           # Convert to double
             vbroadcastsd ymm0, xmm0         # Duplicate in lanes 1, 2, 3
             vmovapd     ymm1, tend[rip]     # Need 10 for mod calculation
-            vmovdqa     ymm2, zero[rip]     # Need ascii zero
-            lea         r8,   ten14fp[rip - 5 * 8] # Floating point divisors,
+            vmovdqa     ymm2, zerodw[rip]   # Need ascii zero
+            lea         r8,   ten14d[rip - 5 * 8] # Floating point divisors,
                                             # R8 is offset due to non zero index
             avxNextDigits4 5                # Last 15 digits
             avxNextDigits4 9
@@ -104,13 +104,24 @@ _u32ToDecStr:
             cvtsi2sd    xmm0, rsi           # Convert to double
             vbroadcastsd ymm0, xmm0         # Duplicate in lanes 1, 2, 3
             vmovapd     ymm1, tend[rip]     # Need 10 for mod calculation
-            vmovdqa     ymm2, zero[rip]     # Need ascii zero
-            lea         r8,   ten9fp[rip]   # Floating point divisors
+            vmovdqa     ymm2, zerodw[rip]   # Need ascii zero
+            lea         r8,   ten9d[rip]    # Floating point divisors
 
-            avxNextDigits4 0                # All 10 gigits
-            avxNextDigits4 4
-            avxNextDigits2 8
+            avxNextDigits4 0                # First 4 digits
 
+            vmovsd      xmm3, firstfourd[rip] # Remove first four digits
+            vdivsd      xmm4, xmm0, xmm3
+            roundsd     xmm4, xmm4, 3
+            vmulsd      xmm4, xmm4, xmm3
+            vsubsd      xmm0, xmm0, xmm4
+            cvtsd2ss    xmm0, xmm0          # Switch to floats
+            vbroadcastss ymm0, xmm0         # Duplicate in lanes 1 ... 7
+
+            vmovaps     ymm1, tens[rip]
+            lea         r8,   ten5s[rip - 4 * 4]
+
+            avxNextDigits6 4                # Last 6 digits
+ 
             mov         byte ptr [rdi + 10], 0 # Null terminator
             mov         rax,  rdi           # Return original pointer
             and         rax,  ~1            # Make sure sign included

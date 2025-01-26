@@ -44,7 +44,7 @@ s64ToDecStr endp
 
             align   16
 u64ToDecStr proc
-            lea     r8, ten19u              ; Divisors
+            lea     r8, ten19qw             ; Divisors
 
             nextDigit64 0                   ; First 11 digits
             nextDigit64 1
@@ -58,7 +58,7 @@ u64ToDecStr proc
             nextDigit64 9
             nextDigit64 10
 
-            lea     r8, ten8u - 11 * 4      ; Divisors, offset by index
+            lea     r8, ten8dw - 11 * 4     ; Divisors, offset by index
 
             nextDigit32 11                  ; Next 8 digits
             nextDigit32 12
@@ -94,7 +94,7 @@ s32ToDecStr endp
             align   16
 u32ToDecStr proc
             mov     edx,  edx               ; Clear upper dword
-            lea     r8, ten9u               ; Divisors
+            lea     r8, ten9dw              ; Divisors
 
             nextDigit32 0
             nextDigit32 1

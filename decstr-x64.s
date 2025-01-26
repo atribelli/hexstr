@@ -52,7 +52,7 @@ _s64ToDecStr:
 u64ToDecStr:
 _u64ToDecStr:
             mov     rdx, rsi                # Use div remainder register
-            lea     r8, ten19u[rip]         # Divisors
+            lea     r8, ten19qw[rip]        # Divisors
 
             nextDigit64 0                   # First 11 digits
             nextDigit64 1
@@ -66,7 +66,7 @@ _u64ToDecStr:
             nextDigit64 9
             nextDigit64 10
 
-            lea     r8, ten8u[rip - 11 * 4] # Divisors, offset by index
+            lea     r8, ten8dw[rip - 11 * 4] # Divisors, offset by index
 
             nextDigit32 11                  # Next 8 digits
             nextDigit32 12
@@ -102,7 +102,7 @@ _s32ToDecStr:
 u32ToDecStr:
 _u32ToDecStr:
             mov     edx, esi                # Use div remainder register
-            lea     r8, ten9u[rip]          # Divisors
+            lea     r8, ten9dw[rip]         # Divisors
 
             nextDigit32 0
             nextDigit32 1
