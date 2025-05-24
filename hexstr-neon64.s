@@ -12,6 +12,8 @@
             .balign 4
             .global u64ToHexStr, u32ToHexStr, u16ToHexStr
             .global u8ToHexStr, u4ToHexStr
+            .global _u64ToHexStr, _u32ToHexStr, _u16ToHexStr
+            .global _u8ToHexStr, _u4ToHexStr
 
 //-----------------------------------------------------------------------------
 // Convert value to zero terminated hex string.
@@ -23,6 +25,7 @@
 
             .balign 16
 u64ToHexStr:
+_u64ToHexStr:
             rev     x1, x1                  // Reverse bytes to match string
             mov     v0.d[0], x1
 
@@ -50,6 +53,7 @@ u64ToHexStr:
 
             .balign 16
 u32ToHexStr:
+_u32ToHexStr:
             rev     w1, w1                  // Reverse bytes to match string
             mov     v0.s[0], w1
 
@@ -77,6 +81,7 @@ u32ToHexStr:
 
             .balign 16
 u16ToHexStr:
+_u16ToHexStr:
             rev     w1, w1                  // Reverse bytes to match string
             lsr     w1, w1, #16
             mov     v0.h[0], w1
@@ -106,6 +111,7 @@ u16ToHexStr:
 
             .balign 16
 u8ToHexStr:
+_u8ToHexStr:
             adr     x2, lookup              // Get ascii from lookup table
 
             lsr     x3, x1, #4              // Position desired nibble
@@ -122,6 +128,7 @@ u8ToHexStr:
 
             .balign 16
 u4ToHexStr:
+_u4ToHexStr:
             adr     x2, lookup              // Get ascii from lookup table
 
             and     x3, x1, #0x0f           // Create an index
