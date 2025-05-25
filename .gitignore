@@ -14,11 +14,11 @@ decstr-avx
 hexstr-a64c
 hexstr-a64intrin
 hexstr-a64asm
-hexstr-neon64
+hexstr-a64neon
 hexstr-a32c
 hexstr-a32intrin
 hexstr-a32asm
-hexstr-neon32
+hexstr-a32neon
 hexstr-thumb
 a.out
 *.exe

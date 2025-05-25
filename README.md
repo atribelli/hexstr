@@ -53,21 +53,22 @@ nextdigits.s - An include file to share macross and data (gas).
 nextdigits.asm - An include file to share macross and data (masm).  
 
 ## Building  
-make - Create C and intrinsics based code: hexstr-c and hexstr-intrin.  
-make intel - Create x64 assembly, SSE, and AVX code: hexstr-x64, hexstr-sse, and hexstr-avx.  
-make arm64 - Create AArch64 assembly and NEON code: hexstr-a64 and hexstr-neon64.  
-make arm32 - Create ARMv7-A assembly, NEON, and thumb code: hexstr-a32, hexstr-neon32, and hexstr-thumb.  
+make - Detects OS and architecture and builds intel, arm64, or arm32 code.  
+intel: cpuid, hexstr-c, hexstr-intrin, hexstr-x64, hexstr-sse, hexstr-avx, decstr-c, decstr-intrin, decstr-x64, decstr-sse, and decstr-avx.  
+arm64: hexstr-a64c, hexstr-a64intrin, hexstr-a64asm, and hexstr-a64neon.  
+arm32: hexstr-a32c, hexstr-a32intrin, hexstr-a32asm, hexstr-a32neon, and hexstr-thumb.  
 make clean - Remove executable and build files.  
 nmake /f hexstr.mak - Create all executables for Windows.  
+intel: cpuid.exe, hexstr-c.exe, hexstr-intrin.exe, hexstr-x64.exe, hexstr-sse.exe, hexstr-avx.exe, decstr-c.exe, decstr-intrin.exe, decstr-x64.exe, decstr-sse.exe, and decstr-avx.exe.  
 nmake /f hexstr.mak clean - Remove executable and build files under Windows.  
 
 ## Testing  
 Intel based Mac.  
 ARM based Mac.  
-Windows PC.  
-Linux PC.  
-Raspberry Pi 64-bit.  
-Raspberry Pi 32-bit.  
+Intel based Windows PC.  
+Intel based Linux PC.  
+Raspberry Pi 64-bit (ARM64 Linux).  
+Raspberry Pi 32-bit (ARM32 Linux).  
 
 ## Algorithms  
 Previous experience has shown that different algorithms may be faster depending on the underlying hardware architecture. C based implementations use unrolled table-based lookup. Assembly based implementation have four options. Table lookup or computed hex digits. Copying individual digits to the output buffer or collecting digits in a register and only copying to the output buffer when the register is full. The assembly code has a pair of symbols defined to choose these algorithm options:  
