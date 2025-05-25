@@ -1,9 +1,15 @@
 # hexstr
 
 Intel SSE/AVX2 and ARM NEON hexadecimal string creation.
-Inspired by the books "The Art of 64-Bit Assembly" and "The Art of ARM Assembly" by Randall Hyde.  
+Inspired by the books by Randall Hyde:  
+"The Art of 64-Bit Assembly, Volume 1"  
+ISBN-13: 9781718501089  
 https://nostarch.com/art-64-bit-assembly-volume-1  
+https://www.amazon.com/Art-64-Bit-Assembly-Language/dp/1718501080  
+"The Art of ARM Assembly, Volume 1"  
+ISBN-13: 9781718502826  
 https://nostarch.com/art-arm-assembly  
+https://www.amazon.com/Art-ARM-Assembly-Randall-Hyde/dp/1718502826  
 
 This is a testbed for experimenting with SIMD implementations. For comparison purposes there are ordinary C and assembly implementations.
 
