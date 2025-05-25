@@ -67,6 +67,7 @@ Intel based Mac.
 ARM based Mac.  
 Intel based Windows PC.  
 Intel based Linux PC.  
+ARM based Linux PC (Virtualized on Mac).  
 Raspberry Pi 64-bit (ARM64 Linux).  
 Raspberry Pi 32-bit (ARM32 Linux).  
 
