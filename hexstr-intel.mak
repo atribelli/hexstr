@@ -1,4 +1,4 @@
-# hexstr.mak
+# hexstr-intel.mak
 
 optcpp = /std:c++17 /O2 /EHsc
 optc   = /std:c17 /O2 /EHsc

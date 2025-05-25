@@ -17,7 +17,8 @@ It's less interesting than hex, but I've added Intel SSE/AVX2 decimal string cre
 
 ## Files  
 makefile - macOS and Linux based builds.  
-hexstr.mak - Windows based builds.  
+hexstr-intel.mak - Windows based builds.  
+hexstr-arm.mak  
 timer.h - Determine elapsed time.  
 cpuid.c - Displays cpu info.  
 cpuinfo.h  
@@ -58,14 +59,18 @@ intel: cpuid, hexstr-c, hexstr-intrin, hexstr-x64, hexstr-sse, hexstr-avx, decst
 arm64: hexstr-a64c, hexstr-a64intrin, hexstr-a64asm, and hexstr-a64neon.  
 arm32: hexstr-a32c, hexstr-a32intrin, hexstr-a32asm, hexstr-a32neon, and hexstr-thumb.  
 make clean - Remove executable and build files.  
-nmake /f hexstr.mak - Create all executables for Windows.  
+nmake /f hexstr-intel.mak - Create all executables for Windows x86_64.  
 intel: cpuid.exe, hexstr-c.exe, hexstr-intrin.exe, hexstr-x64.exe, hexstr-sse.exe, hexstr-avx.exe, decstr-c.exe, decstr-intrin.exe, decstr-x64.exe, decstr-sse.exe, and decstr-avx.exe.  
-nmake /f hexstr.mak clean - Remove executable and build files under Windows.  
+nmake /f hexstr-arm.mak - Create all executables for Windows ARM.  
+arm: hexstr-a64c.exe, hexstr-a64intrin.exe, hexstr-a64.exe, and hexstr-a64neon.exe.  
+nmake /f hexstr-intel.mak clean - Remove executable and build files under Windows.  
+nmake /f hexstr-arm.mak clean  
 
 ## Testing  
 Intel based Mac.  
 ARM based Mac.  
 Intel based Windows PC.  
+ARM based Windows PC (Virtualized on Mac).  
 Intel based Linux PC.  
 ARM based Linux PC (Virtualized on Mac).  
 Raspberry Pi 64-bit (ARM64 Linux).  
@@ -79,7 +84,7 @@ Note that the value of the defined symbol does not matter. Conditional assembly 
 
 ## Example  
 ```
-% make intel
+% make
 gcc  -c -std=c17 -O3 cpuinfo.c
 gcc  -o cpuid.o -c -std=c17 -O3 cpuid.c
 gcc  -o cpuid -std=c17 -O3 cpuinfo.o cpuid.o
