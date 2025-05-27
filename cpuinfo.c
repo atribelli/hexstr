@@ -1,6 +1,9 @@
 // cpuinfo.c
 
+#include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 
 #if defined(__x86_64__)                     // 64-bit Intel macOS or Linux
 #include <cpuid.h>
@@ -9,6 +12,12 @@
 #endif
 
 #include "cpuinfo.h"
+
+
+
+// Lets be paranoid about string termination
+#define strterm(buf, len) (buf)[(len)       - 1] = 0;
+#define bufterm(buf)      (buf)[sizeof(buf) - 1] = 0;
 
 
 
@@ -398,34 +407,45 @@ bool cpu_has_sse3(void) {
 // Identify the CPU
 
 bool get_cpu_vendor(char *buffer, size_t len) {
-#if defined(__x86_64__) || defined(_M_X64)  // 64-bit Intel
-
     // Verify buffer
-    if (buffer == NULL || len < 13)
+    if (buffer == NULL || len == 0)
         return false;
+
+    buffer[0] = 0;
+
+#if defined(__x86_64__) || defined(_M_X64)  // 64-bit Intel
 
     // EAX 0 ECX 0
     if (! get_cpu_features(0, 0))
         return false;
 
-    *((uint32_t*)&buffer[0]) = cpu.ebx;
-    *((uint32_t*)&buffer[4]) = cpu.edx;
-    *((uint32_t*)&buffer[8]) = cpu.ecx;
-    buffer[12] = 0;
+    char vendor[16];
+
+    *((uint32_t*)&vendor[0]) = cpu.ebx;
+    *((uint32_t*)&vendor[4]) = cpu.edx;
+    *((uint32_t*)&vendor[8]) = cpu.ecx;
+    vendor[12] = 0;
+    
+    strncpy(buffer, vendor, len);
+    strterm(buffer, len);
 
     return true;
-
+    
 #endif
 
     return false;
 }
 
 bool get_cpu_brand(char *buffer, size_t len) {
-#if defined(__x86_64__) || defined(_M_X64)  // 64-bit Intel
-
     // Verify buffer
-    if (buffer == NULL || len < 49)
+    if (buffer == NULL || len == 0)
         return false;
+
+    buffer[0] = 0;
+
+    char brand[64];
+
+#if defined(__x86_64__) || defined(_M_X64)  // 64-bit Intel
 
     // Check level of CPUID support
     if (! has_cpuid_level(0x80000000, 0x80000004))
@@ -435,29 +455,56 @@ bool get_cpu_brand(char *buffer, size_t len) {
     if (! get_cpu_features(0x80000002, 0))
         return false;
 
-    *((uint32_t*)&buffer[0])  = cpu.eax;
-    *((uint32_t*)&buffer[4])  = cpu.ebx;
-    *((uint32_t*)&buffer[8])  = cpu.ecx;
-    *((uint32_t*)&buffer[12]) = cpu.edx;
+    *((uint32_t*)&brand[0])  = cpu.eax;
+    *((uint32_t*)&brand[4])  = cpu.ebx;
+    *((uint32_t*)&brand[8])  = cpu.ecx;
+    *((uint32_t*)&brand[12]) = cpu.edx;
 
     if (! get_cpu_features(0x80000003, 0))
         return false;
 
-    *((uint32_t*)&buffer[16]) = cpu.eax;
-    *((uint32_t*)&buffer[20]) = cpu.ebx;
-    *((uint32_t*)&buffer[24]) = cpu.ecx;
-    *((uint32_t*)&buffer[28]) = cpu.edx;
+    *((uint32_t*)&brand[16]) = cpu.eax;
+    *((uint32_t*)&brand[20]) = cpu.ebx;
+    *((uint32_t*)&brand[24]) = cpu.ecx;
+    *((uint32_t*)&brand[28]) = cpu.edx;
 
     if (! get_cpu_features(0x80000004, 0))
         return false;
 
-    *((uint32_t*)&buffer[32]) = cpu.eax;
-    *((uint32_t*)&buffer[36]) = cpu.ebx;
-    *((uint32_t*)&buffer[40]) = cpu.ecx;
-    *((uint32_t*)&buffer[44]) = cpu.edx;
-    buffer[48] = 0;
+    *((uint32_t*)&brand[32]) = cpu.eax;
+    *((uint32_t*)&brand[36]) = cpu.ebx;
+    *((uint32_t*)&brand[40]) = cpu.ecx;
+    *((uint32_t*)&brand[44]) = cpu.edx;
+    brand[48] = 0;
+    
+    strncpy(buffer, brand, len);
+    strterm(buffer, len);
 
     return true;
+
+#elif defined(__aarch64__) || defined(__arm__) // 64- or 32-bit ARM
+    
+    char    buf[64];
+    int64_t ret;
+    size_t  size;
+
+    // Let's try to get Mac info
+    size = sizeof(buf);
+    if (sysctlbyname("machdep.cpu.brand_string", buf, &size, NULL, 0) == 0) {
+        bufterm(buf);
+        
+        ret  = 0;
+        size = sizeof(ret);
+        if (sysctlbyname("hw.ncpu", &ret, &size, NULL, 0) == 0) {
+            snprintf(brand, sizeof(brand), "%s %lld-Core", buf, ret);
+            bufterm(brand);
+
+            strncpy(buffer, brand, len);
+            strterm(buffer, len);
+            
+            return true;
+        }
+    }
 
 #endif
 
@@ -465,43 +512,97 @@ bool get_cpu_brand(char *buffer, size_t len) {
 }
 
 bool get_cpu_simd(char *buffer, size_t len) {
-#if defined(__x86_64__) || defined(_M_X64)  // 64-bit Intel
-
-    // String is around 84 bytes in length so far
-    // SSE3 SSE4.2 AVX AVX2 GEN4 AVX512-F-CD AVX512-ER-PF AVX512-VL-DQ-BW AVX512-IFMA-VBMI
-
     // Verify buffer
-    if (buffer == NULL || len < 90)
+    if (buffer == NULL || len == 0)
         return false;
 
     buffer[0] = 0;
 
+    char simd[1024];
+
+#if defined(__x86_64__) || defined(_M_X64)  // 64-bit Intel
+    simd[0] = 0;
+    
     if (cpu_has_sse3()) {
-        strcat(buffer, "SSE3 ");
+        strcat(simd, "SSE3 ");
     }
     if (cpu_has_sse4_2()) {
-        strcat(buffer, "SSE4.2 ");
+        strcat(simd, "SSE4.2 ");
     }
     if (cpu_has_avx()) {
-        strcat(buffer, "AVX ");
+        strcat(simd, "AVX ");
     }
     if (cpu_has_avx2()) {
-        strcat(buffer, "AVX2 ");
+        strcat(simd, "AVX2 ");
     }
     if (is_cpu_gen_4()) {
-        strcat(buffer, "GEN4 ");
+        strcat(simd, "GEN4 ");
     }
     if (cpu_has_avx512_f_cd()) {
-        strcat(buffer, "AVX512-F-CD ");
+        strcat(simd, "AVX512-F-CD ");
     }
     if (cpu_has_avx512_er_pf()) {
-        strcat(buffer, "AVX512-ER-PF ");
+        strcat(simd, "AVX512-ER-PF ");
     }
     if (cpu_has_avx512_vl_dq_bw()) {
-        strcat(buffer, "AVX512-VL-DQ-BW ");
+        strcat(simd, "AVX512-VL-DQ-BW ");
     }
     if (cpu_has_avx512_ifma_vbmi()) {
-        strcat(buffer, "AVX512-IFMA-VBMI ");
+        strcat(simd, "AVX512-IFMA-VBMI ");
+    }
+    bufterm(simd);
+    
+    strncpy(buffer, simd, len);
+    strterm(buffer, len);
+
+    return true;
+
+#elif defined(__aarch64__) || defined(__arm__)  // ARM
+
+    char    buf[32];
+    int64_t ret;
+    size_t  size;
+    
+    // Let's try to get Mac info
+    if (sysctlbyname("machdep.cpu.brand_string", NULL, &size, NULL, 0) == 0) {
+        ret  = 0;
+        size = sizeof(ret);
+        
+        // If we have multiple performance levels show core counts
+        if (sysctlbyname("hw.nperflevels", &ret, &size, NULL, 0) == 0) {
+            simd[0] = 0;
+
+            for (int i = 0; i < (int) ret; ++i) {
+                char name[64];
+                
+                snprintf(name, sizeof(name), "hw.perflevel%d.name", i);
+                bufterm(name);
+                
+                size = sizeof(buf);
+                if (sysctlbyname(name, buf, &size, NULL, 0) == 0) {
+                    bufterm(buf);
+
+                    strcat(simd, buf);
+                    strcat(simd, " ");
+                }
+                
+                snprintf(name, sizeof(name), "hw.perflevel%d.physicalcpu", i);
+                bufterm(name);
+
+                ret  = 0;
+                size = sizeof(ret);
+                if (sysctlbyname(name, &ret, &size, NULL, 0) == 0) {
+                    snprintf(buf, sizeof(buf), "%lld", ret);
+                    bufterm(buf);
+
+                    strcat(simd, buf);
+                    strcat(simd, " ");
+                }
+            }
+        }
+        
+        strncpy(buffer, simd, len);
+        strterm(buffer, len);
     }
 
     return true;

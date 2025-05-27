@@ -38,6 +38,7 @@ int main (int argc, char *argv[]) {
     uint32_t                iterations = 10'000'000,
                             scale      = 1;
 
+    // -------------------------------------------------------------------------
     // Do the timing before any output to minimize background activity
     
     // Use volatile to prevent optimizer removing code
@@ -94,9 +95,21 @@ int main (int argc, char *argv[]) {
     // -------------------------------------------------------------------------
     // Identify the CPU
 
+    char buffer[160];
+
 #if defined(__x86_64__) || defined(_M_X64)  // 64-bit Intel
 
-    char buffer[160];
+    if (get_cpu_vendor(buffer, sizeof(buffer))) {
+        cout << (char*) buffer << " ";
+    }
+    if (get_cpu_brand(buffer, sizeof(buffer))) {
+        cout << (char*) buffer << endl;
+    }
+    if (get_cpu_simd(buffer, sizeof(buffer))) {
+        cout << (char*) buffer << endl;
+    }
+
+#elif defined(__aarch64__)                  // 64-bit ARM
 
     if (get_cpu_vendor(buffer, sizeof(buffer))) {
         cout << (char*) buffer << " ";
@@ -110,6 +123,7 @@ int main (int argc, char *argv[]) {
 
 #endif
 
+    // -------------------------------------------------------------------------
     // Show the user the testing results
 
     test();

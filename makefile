@@ -157,16 +157,22 @@ maind.o: decstr.h maind.cpp
 #-----------------------------------------------------------------------------
 # ARM64 code
 
-arm64: hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-a64neon
+arm64: a64cpuid hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-a64neon
+
+a64cpuid: a64cpuinfo.o a64cpuid.o
+	gcc $(optdb) -o a64cpuid $(optc) a64cpuinfo.o a64cpuid.o
+
+a64cpuid.o: cpuinfo.h cpuid.c
+	gcc $(optdb) -o a64cpuid.o -c $(optc) cpuid.c
+
+a64cpuinfo.o: cpuinfo.h cpuinfo.c
+	gcc $(optdb) -o a64cpuinfo.o -c $(optc) cpuinfo.c
 
 hexstr-a64c: a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-a64c.o
 	g++ $(optdb) -o hexstr-a64c $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o a64hexstr-test.o hexstr-a64c.o
 
 a64mainh.o: hexstr.h mainh.cpp
 	g++ $(optdb) -o a64mainh.o -c $(optcpp) $(optarch) mainh.cpp
-
-a64cpuinfo.o: cpuinfo.h cpuinfo.c
-	g++ $(optdb) -o a64cpuinfo.o -c $(optcpp) $(optarch) cpuinfo.c
 
 a64hexstr-test.o: hexstr.h hexstr-test.cpp
 	g++ $(optdb) -o a64hexstr-test.o -c $(optcpp) $(optarch) hexstr-test.cpp
@@ -246,4 +252,4 @@ hexstr-thumb.o: hexstr-thumb.s
 # Quietly clean up
 
 clean:
-	rm -f cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-a64neon hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-a32neon hexstr-thumb decstr-c decstr-intrin decstr-x64 decstr-sse decstr-avx a.out *.o
+	rm -f cpuid a64cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-a64neon hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-a32neon hexstr-thumb decstr-c decstr-intrin decstr-x64 decstr-sse decstr-avx a.out *.o
