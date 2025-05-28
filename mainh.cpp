@@ -87,7 +87,7 @@ int main (int argc, char *argv[]) {
     if (get_cpu_brand(buffer, sizeof(buffer))) {
         cout << (char*) buffer << endl;
     }
-    if (get_cpu_simd(buffer, sizeof(buffer))) {
+    if (get_cpu_features(buffer, sizeof(buffer))) {
         cout << (char*) buffer << endl;
     }
 
@@ -99,7 +99,7 @@ int main (int argc, char *argv[]) {
     if (get_cpu_brand(buffer, sizeof(buffer))) {
         cout << (char*) buffer << endl;
     }
-    if (get_cpu_simd(buffer, sizeof(buffer))) {
+    if (get_cpu_features(buffer, sizeof(buffer))) {
         cout << (char*) buffer << endl;
     }
 

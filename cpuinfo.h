@@ -21,7 +21,7 @@ extern "C" {
     bool cpu_has_sse3             (void);
     bool get_cpu_vendor           (char *buffer, size_t len);
     bool get_cpu_brand            (char *buffer, size_t len);
-    bool get_cpu_simd             (char *buffer, size_t len);
+    bool get_cpu_features         (char *buffer, size_t len);
 
 #ifdef __cplusplus
 }

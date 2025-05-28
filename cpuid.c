@@ -13,7 +13,7 @@ int main (void) {
     if (get_cpu_brand(buffer, sizeof(buffer))) {
         printf("%s\n", buffer);
     }
-    if (get_cpu_simd(buffer, sizeof(buffer))) {
+    if (get_cpu_features(buffer, sizeof(buffer))) {
         printf("%s\n", buffer);
     }
 
