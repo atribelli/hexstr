@@ -9,11 +9,11 @@
 #include <intrin.h>
 #endif
 
-#if defined(TARGET_OS_MAC)                  // 64-bit macOS
+#if defined(__APPLE__)                      // 64-bit macOS
 #include <sys/sysctl.h>
 #endif
 
-#if defined(TARGET_OS_MAC) && defined(__aarch64__)  // 64-bit ARM macOS
+#if defined(__APPLE__) && defined(__aarch64__)      // 64-bit ARM macOS
 #elif defined(__linux__) && defined(__aarch64__)    // 64-bit ARM Linux
 #elif defined(__linux__) && defined(__arm__)        // 32-bit ARM Linux
 #endif
@@ -494,7 +494,7 @@ bool get_cpu_brand(char *buffer, size_t len) {
     
     // Fall through to cores code
     
-#elif defined(TARGET_OS_MAC) && defined(__aarch64__)    // 64-bit ARM macOS
+#elif defined(__APPLE__) && defined(__aarch64__)    // 64-bit ARM macOS
     
     size = sizeof(brand);
     if (sysctlbyname("machdep.cpu.brand_string", brand, &size, NULL, 0) == 0) {
@@ -507,7 +507,7 @@ bool get_cpu_brand(char *buffer, size_t len) {
 
     // Handle cores portion of returned string
 
-#if defined(TARGET_OS_MAC)                              // Any macOS
+#if defined(__APPLE__)                              // Any macOS
 
     ret  = 0;
     size = sizeof(ret);
@@ -518,7 +518,7 @@ bool get_cpu_brand(char *buffer, size_t len) {
 
 #endif
     
-#if defined(__x86_64__) || defined(_M_X64) || defined(TARGET_OS_MAC) // Intel or ARM macOS
+#if defined(__x86_64__) || defined(_M_X64) || defined(__APPLE__) // Intel or ARM macOS
 
     snprintf(buffer, len, "%s %s", brand, cores);
     strterm(buffer, len);
@@ -543,7 +543,7 @@ bool get_cpu_features(char *buffer, size_t len) {
 
     // Handle cores portion of returned string
 
-#if defined(TARGET_OS_MAC)                              // Any macOS
+#if defined(__APPLE__)                              // Any macOS
 
     int64_t ret;
     size_t  size;
@@ -622,7 +622,7 @@ bool get_cpu_features(char *buffer, size_t len) {
     
 #endif
 
-#if defined(__x86_64__) || defined(_M_X64) || defined(TARGET_OS_MAC) // Intel or ARM macOS
+#if defined(__x86_64__) || defined(_M_X64) || defined(__APPLE__) // Intel or ARM macOS
     
     strncpy(buffer, simd, len);
     strterm(buffer, len);
