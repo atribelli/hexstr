@@ -568,7 +568,8 @@ static char *get_sysctlbyname_cores_info() {
         char name[64];
         char buf[32];
 
-        for (int i = 0; i < (int) ret; ++i) {
+        int levels = (int) ret;
+        for (int i = 0; i < levels; ++i) {
             snprintf(name, sizeof(name), "hw.perflevel%d.name", i);
             bufterm(name);
             
