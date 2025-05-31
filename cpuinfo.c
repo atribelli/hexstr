@@ -564,7 +564,7 @@ bool cpu_has_sse3(void) {
 
 #if defined(__APPLE__)                      // macOS
 
-static char *get_sysctlbyname_cores_info() {
+static char *get_sysctlbyname_cores_info(void) {
     static char cores[1024] = "";
     int64_t     ret         = 0;
     size_t      size        = sizeof(ret);
