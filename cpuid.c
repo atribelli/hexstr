@@ -8,13 +8,13 @@ int main (void) {
     char buffer[256];
 
     if (get_cpu_vendor(buffer, sizeof(buffer))) {
-        printf("%s ", buffer);
+        printf("Vendor:   %s\n", buffer);
     }
     if (get_cpu_brand(buffer, sizeof(buffer))) {
-        printf("%s\n", buffer);
+        printf("Brand:    %s\n", buffer);
     }
     if (get_cpu_features(buffer, sizeof(buffer))) {
-        printf("%s\n", buffer);
+        printf("Features: %s\n", buffer);
     }
 
     return 0;
