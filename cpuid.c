@@ -5,10 +5,13 @@
 #include "cpuinfo.h"
 
 int main (void) {
-    char buffer[256];
+    char buffer[1024];
 
     if (get_cpu_vendor(buffer, sizeof(buffer))) {
         printf("Vendor:   %s\n", buffer);
+    }
+    if (get_cpu_part(buffer, sizeof(buffer))) {
+        printf("Part:     %s\n", buffer);
     }
     if (get_cpu_brand(buffer, sizeof(buffer))) {
         printf("Brand:    %s\n", buffer);
