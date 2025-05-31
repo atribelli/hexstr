@@ -77,9 +77,7 @@ int main (int argc, char *argv[]) {
     // -------------------------------------------------------------------------
     // Identify the CPU
 
-    char buffer[160];
-
-#if defined(__x86_64__) || defined(_M_X64)  // 64-bit Intel
+    char buffer[256];
 
     if (get_cpu_vendor(buffer, sizeof(buffer))) {
         cout << (char*) buffer << " ";
@@ -90,20 +88,6 @@ int main (int argc, char *argv[]) {
     if (get_cpu_features(buffer, sizeof(buffer))) {
         cout << (char*) buffer << endl;
     }
-
-#elif defined(__aarch64__)                  // 64-bit ARM
-
-    if (get_cpu_vendor(buffer, sizeof(buffer))) {
-        cout << (char*) buffer << " ";
-    }
-    if (get_cpu_brand(buffer, sizeof(buffer))) {
-        cout << (char*) buffer << endl;
-    }
-    if (get_cpu_features(buffer, sizeof(buffer))) {
-        cout << (char*) buffer << endl;
-    }
-
-#endif
 
     // -------------------------------------------------------------------------
     // Show the user the testing results

@@ -206,16 +206,22 @@ a64maind.o: hexstr.h maind.cpp
 #-----------------------------------------------------------------------------
 # ARM32 code
 
-arm32: hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-a32neon hexstr-thumb
+arm32: a32cpuid hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-a32neon hexstr-thumb
+
+a32cpuid: a32cpuinfo.o a32cpuid.o
+	gcc $(optdb) -o a32cpuid $(optc) a32cpuinfo.o a32cpuid.o
+
+a32cpuid.o: cpuinfo.h cpuid.c
+	gcc $(optdb) -o a32cpuid.o -c $(optc) cpuid.c
+
+a32cpuinfo.o: cpuinfo.h cpuinfo.c
+	gcc $(optdb) -o a32cpuinfo.o -c $(optc) cpuinfo.c
 
 hexstr-a32c: a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-a32c.o
 	g++ $(optdb) -o hexstr-a32c $(optcpp) $(optarch) a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-a32c.o
 
 a32main.o: hexstr.h mainh.cpp
 	g++ $(optdb) -o a32main.o -c $(optcpp) $(optarch) mainh.cpp
-
-a32cpuinfo.o: cpuinfo.h cpuinfo.c
-	g++ $(optdb) -o a32cpuinfo.o -c $(optcpp) $(optarch) cpuinfo.c
 
 a32hexstr-test.o: hexstr.h hexstr-test.cpp
 	g++ $(optdb) -o a32hexstr-test.o -c $(optcpp) $(optarch) hexstr-test.cpp
@@ -229,20 +235,20 @@ hexstr-a32intrin: a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-a32intrin.o
 hexstr-a32intrin.o: hexstr.h hexstr.c
 	gcc $(optdb) -o hexstr-a32intrin.o -c $(optc) $(optarch) -DUSE_SIMD hexstr.c
 
-hexstr-a32asm: a32main.o a32hexstr-test.o  hexstr-a32asm.o
-	g++ $(optdb) -o hexstr-a32asm $(optcpp) $(optarch) a32main.o a32hexstr-test.o hexstr-a32asm.o
+hexstr-a32asm: a32main.o a32cpuinfo.o a32hexstr-test.o  hexstr-a32asm.o
+	g++ $(optdb) -o hexstr-a32asm $(optcpp) $(optarch) a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-a32asm.o
 
 hexstr-a32asm.o: hexstr-a32.s
 	as $(optdb) -o hexstr-a32asm.o $(optas) hexstr-a32.s
 
-hexstr-a32neon: a32main.o a32hexstr-test.o hexstr-a32neon.o
-	g++ $(optdb) -o hexstr-a32neon $(optcpp) $(optarch) a32main.o a32hexstr-test.o hexstr-a32neon.o
+hexstr-a32neon: a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-a32neon.o
+	g++ $(optdb) -o hexstr-a32neon $(optcpp) $(optarch) a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-a32neon.o
 
 hexstr-a32neon.o: hexstr-neon32.s
 	as $(optdb) -o hexstr-a32neon.o $(optas) hexstr-neon32.s
 
-hexstr-thumb: a32main.o a32hexstr-test.o hexstr-thumb.o
-	g++ $(optdb) -o hexstr-thumb $(optcpp) $(optarch) a32main.o a32hexstr-test.o hexstr-thumb.o
+hexstr-thumb: a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-thumb.o
+	g++ $(optdb) -o hexstr-thumb $(optcpp) $(optarch) a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-thumb.o
 
 hexstr-thumb.o: hexstr-thumb.s
 	as $(optdb) -o hexstr-thumb.o $(optas) hexstr-thumb.s
@@ -252,4 +258,4 @@ hexstr-thumb.o: hexstr-thumb.s
 # Quietly clean up
 
 clean:
-	rm -f cpuid a64cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-a64neon hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-a32neon hexstr-thumb decstr-c decstr-intrin decstr-x64 decstr-sse decstr-avx a.out *.o
+	rm -f cpuid a64cpuid a32cpuid hexstr-c hexstr-intrin hexstr-x64 hexstr-sse hexstr-avx hexstr-a64c hexstr-a64intrin hexstr-a64asm hexstr-a64neon hexstr-a32c hexstr-a32intrin hexstr-a32asm hexstr-a32neon hexstr-thumb decstr-c decstr-intrin decstr-x64 decstr-sse decstr-avx a.out *.o
