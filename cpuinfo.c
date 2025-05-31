@@ -26,6 +26,12 @@
 
 #endif
 
+#if defined(_M_ARM64)                       // Windows ARM
+
+#include <windows.h>
+
+#endif
+
 
 
 // -------------------------------------------------------------------------
@@ -672,7 +678,7 @@ static bool get_cpu_vendor_windows(char *buffer, size_t len) {
     
     return get_cpu_vendor_intel(buffer, len);
 
-#elif defined(__aarch64__)                  // 64-bit ARM
+#elif defined(_M_ARM64)                     // 64-bit ARM
 #endif
     
     return false;
@@ -842,7 +848,22 @@ static bool get_cpu_brand_windows(char *buffer, size_t len) {
     
     return get_cpu_brand_intel(buffer, len);
     
-#elif defined(__aarch64__)                  // 64-bit ARM
+
+#elif defined(_M_ARM64)                     // 64-bit ARM
+
+    SYSTEM_INFO info;
+    char        version[16] = "";
+
+    GetNativeSystemInfo(&info);
+    if (info.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_ARM64) {
+        if (IsProcessorFeaturePresent(PF_ARM_V8_INSTRUCTIONS_AVAILABLE)) {
+            strcpy(version, "v8");
+        }
+        snprintf(buffer, len, "ARM %s %d-cores", version, info.dwNumberOfProcessors);
+        strterm(buffer, len);
+    }
+
+    return true;
 
 #endif
     
@@ -1037,7 +1058,23 @@ static bool get_cpu_features_windows(char *buffer, size_t len) {
     
     return get_cpu_features_intel(buffer, len);
 
-#elif defined(__aarch64__)                  // 64-bit ARM
+#elif defined(_M_ARM64)                     // 64-bit ARM
+
+    char features[1024] = "";
+
+    if (IsProcessorFeaturePresent(PF_ARM_FMAC_INSTRUCTIONS_AVAILABLE)) {
+        strcat(features, "FMAC ");
+    }
+
+    if (IsProcessorFeaturePresent(PF_ARM_VFP_32_REGISTERS_AVAILABLE)) {
+        strcat(features, "NEON ");
+    }
+
+    strncpy(buffer, features, len);
+    strterm(buffer, len);
+
+    return true;
+
 #endif
 }
 
