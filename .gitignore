@@ -11,6 +11,7 @@ decstr-intrin
 decstr-x64
 decstr-sse
 decstr-avx
+a32cpuid
 a64cpuid
 hexstr-a64c
 hexstr-a64intrin
