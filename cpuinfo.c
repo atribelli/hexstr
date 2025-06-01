@@ -713,12 +713,6 @@ static bool get_cpu_vendor_macos(char *buffer, size_t len) {
 #if defined(__linux__)                      // Linux
 
 static bool get_cpu_vendor_linux(char *buffer, size_t len) {
-#if defined(__x86_64__)                     // 64-bit Intel
-    
-    return get_cpu_vendor_intel(buffer, len);
-    
-#elif defined(__arm__) || defined(__aarch64__) // 32- or 64-bit ARM
-    
     bool  success = false;
     FILE *fp      = fopen("/proc/cpuinfo", "r");
     
@@ -730,20 +724,17 @@ static bool get_cpu_vendor_linux(char *buffer, size_t len) {
             
             imp = get_arm_imp_part_entry(imp, -1);
             if (imp > -1) {
-                snprintf(buffer, len, "%s", arminfo[imp].name=);
+                snprintf(buffer, len, "%s", arminfo[imp].name);
                 strterm(buffer, len);
                 
                 success = true;
+            }
         }
 
         fclose(fp);
     }
     
     return success;
-
-#endif
-
-    return false;
 }
 
 #endif
@@ -895,12 +886,6 @@ static bool get_cpu_part_macos(char *buffer, size_t len) {
 #if defined(__linux__)                      // Linux
 
 static bool get_cpu_part_linux(char *buffer, size_t len) {
-#if defined(__x86_64__)                     // 64-bit Intel
-    
-    return get_cpu_part_intel(char *buffer, size_t len);
-    
-#elif defined(__arm__) || defined(__aarch64__) // 32- or 64-bit ARM
-
     FILE *fp = fopen("/proc/cpuinfo", "r");
     
     if (fp != NULL) {
@@ -911,18 +896,23 @@ static bool get_cpu_part_linux(char *buffer, size_t len) {
             int arch = strtol(entry, NULL, 10);
 
             if (arch > -1) {
-                snprintf(part, sizeof(part), "ARM v%d ", arch);
+                snprintf(part, sizeof(part), "v%d ", arch);
             }
         }
 
-        entry = get_proc_cpuinfo_entry(fp, "CPU part");
+        entry = get_proc_cpuinfo_entry(fp, "CPU implementer");
         if (entry != NULL) {
-            int i = strtol(entry, NULL, 16);
+            int imp = strtol(entry, NULL, 16);
             
-            i = get_arm_imp_part_entry(imp, part);
-            if (i > -1) {
-                strcat(part, arminfo[i].name);
-                strcat(part, "");
+            entry = get_proc_cpuinfo_entry(fp, "CPU part");
+            if (entry != NULL) {
+                int i = strtol(entry, NULL, 16);
+                
+                i = get_arm_imp_part_entry(imp, i);
+                if (i > -1) {
+                    strcat(part, arminfo[i].name);
+                    strcat(part, " ");
+                }
             }
         }
         
@@ -955,8 +945,6 @@ static bool get_cpu_part_linux(char *buffer, size_t len) {
         
         return true;
     }
-
-#endif
     
     return false;
 }
@@ -1079,14 +1067,7 @@ static bool get_cpu_brand_macos(char *buffer, size_t len) {
 #if defined(__linux__)                      // Linux
 
 static bool get_cpu_brand_linux(char *buffer, size_t len) {
-#if defined(__x86_64__)                     // 64-bit Intel
-    
-    return get_cpu_brand_intel(char *buffer, size_t len);
-    
-#elif defined(__arm__) || defined(__aarch64__) // 32- or 64-bit ARM
-
     char brand[64] = "";
-    char cores[32] = "";
 
     FILE *fp = fopen("/proc/cpuinfo", "r");
     
@@ -1100,33 +1081,13 @@ static bool get_cpu_brand_linux(char *buffer, size_t len) {
             bufterm(brand);
         }
         
-        fseek(fp, 0, SEEK_SET);
-        
-        do {
-            entry = get_proc_cpuinfo_entry(fp, "processor");
-            if (entry != NULL) {
-                procs = strtol(entry, NULL, 10);
-            }
-            else {
-                break;
-            }
-        }
-        while (true);
-
-        if (procs > 0) {
-            snprintf(cores, sizeof(cores), "%d-Core", procs + 1);
-            bufterm(cores);
-        };
-        
-        snprintf(buffer, len, "%s %s", brand, cores);
+        snprintf(buffer, len, "%s", brand);
         strterm(buffer, len);
 
         fclose(fp);
         
         return true;
     }
-
-#endif
     
     return false;
 }
@@ -1265,12 +1226,6 @@ static bool get_cpu_features_macos(char *buffer, size_t len) {
 #if defined(__linux__)                      // Linux
 
 static bool get_cpu_features_linux(char *buffer, size_t len) {
-#if defined(__x86_64__)                     // 64-bit Intel
-    
-    return get_cpu_features_intel(buffer, len);
-
-#elif defined(__arm__) || defined(__aarch64__) // 32- or 64-bit ARM
-
     FILE *fp = fopen("/proc/cpuinfo", "r");
 
     if (fp != NULL) {
@@ -1285,8 +1240,6 @@ static bool get_cpu_features_linux(char *buffer, size_t len) {
         
         return true;
     }
-    
-#endif
     
     return false;
 }
