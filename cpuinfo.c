@@ -1228,10 +1228,6 @@ static bool get_cpu_features_windows(char *buffer, size_t len) {
 
     char features[2048] = "";
 
-    if (IsProcessorFeaturePresent(PF_ARM_FMAC_INSTRUCTIONS_AVAILABLE)) {
-        strcat(features, "FMAC ");
-    }
-
     if (IsProcessorFeaturePresent(PF_ARM_VFP_32_REGISTERS_AVAILABLE)) {
         strcat(features, "NEON ");
     }
@@ -1271,17 +1267,7 @@ static bool get_cpu_features_macos(char *buffer, size_t len) {
     size_t size = sizeof(ret);
     if (   sysctlbyname("hw.optional.neon", &ret, &size, NULL, 0) == 0
         && ret == 1) {
-        strcat(features, "neon ");
-    }
-
-    if (   sysctlbyname("hw.optional.neon_hpfp", &ret, &size, NULL, 0) == 0
-        && ret == 1) {
-        strcat(features, "neon_hpfp ");
-    }
-
-    if (   sysctlbyname("hw.optional.arm.FEAT_DotProd", &ret, &size, NULL, 0) == 0
-        && ret == 1) {
-        strcat(features, "FEAT_DotProd ");
+        strcat(features, "NEON ");
     }
 
     snprintf(buffer, len, "%s", features);
