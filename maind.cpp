@@ -96,13 +96,26 @@ int main (int argc, char *argv[]) {
     // Identify the CPU
 
     char buffer[2048];
+    bool success = false;
 
     if (get_cpu_vendor(buffer, sizeof(buffer))) {
         cout << (char*) buffer << " ";
+        success = true;
     }
+    
     if (get_cpu_brand(buffer, sizeof(buffer))) {
-        cout << (char*) buffer << endl;
+        cout << (char*) buffer << " ";
+        success = true;
     }
+    else if (get_cpu_part(buffer, sizeof(buffer))) {
+        cout << (char*) buffer << " ";
+        success = true;
+    }
+    
+    if (success) {
+        cout << endl;
+    }
+    
     if (get_cpu_features(buffer, sizeof(buffer))) {
         cout << (char*) buffer << endl;
     }
