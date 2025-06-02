@@ -89,7 +89,8 @@ int main (int argc, char *argv[]) {
         cout << (char*) buffer << " ";
         success = true;
     }
-    else if (get_cpu_part(buffer, sizeof(buffer))) {
+    
+    if (get_cpu_part(buffer, sizeof(buffer))) {
         cout << (char*) buffer << " ";
         success = true;
     }
