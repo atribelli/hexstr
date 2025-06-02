@@ -865,6 +865,9 @@ static bool get_cpu_part_windows(char *buffer, size_t len) {
 #if defined(__APPLE__)                      // macOS
 
 static bool get_cpu_part_macos(char *buffer, size_t len) {
+
+#if defined(__x86_64__)                     // 64-bit Intel
+
     int64_t family = 0,
             model  = 0,
             cores  = 0;
@@ -884,6 +887,19 @@ static bool get_cpu_part_macos(char *buffer, size_t len) {
     snprintf(buffer, len, "Family %lld Model %lld %lld-Core",
                           family, model, cores);
     strterm(buffer, len);
+
+#elif defined(__aarch64__)                  // 64-bit ARM
+
+    int64_t cores  = 0;
+
+    size_t size = sizeof(cores);
+    if (sysctlbyname("machdep.cpu.core_count", &cores,  &size, NULL, 0) != 0)
+        return false;
+    
+    snprintf(buffer, len, "%lld-Core", cores);
+    strterm(buffer, len);
+
+#endif
     
     return true;
 }
@@ -1210,7 +1226,7 @@ static bool get_cpu_features_windows(char *buffer, size_t len) {
 
 #elif defined(_M_ARM64)                     // 64-bit ARM
 
-    char features[1024] = "";
+    char features[2048] = "";
 
     if (IsProcessorFeaturePresent(PF_ARM_FMAC_INSTRUCTIONS_AVAILABLE)) {
         strcat(features, "FMAC ");
@@ -1237,12 +1253,43 @@ static bool get_cpu_features_windows(char *buffer, size_t len) {
 #if defined(__APPLE__)                      // macOS
 
 static bool get_cpu_features_macos(char *buffer, size_t len) {
+
+#if defined(__x86_64__)                     // 64-bit Intel
+    
     size_t size = len;
     if (sysctlbyname("machdep.cpu.features", buffer, &size, NULL, 0) == 0) {
         strterm(buffer, len);
         
         return true;
     }
+
+#elif defined(__aarch64__)                  // 64-bit ARM
+
+    char    features[2048] = "";
+    int64_t ret            = 0;
+
+    size_t size = sizeof(ret);
+    if (   sysctlbyname("hw.optional.neon", &ret, &size, NULL, 0) == 0
+        && ret == 1) {
+        strcat(features, "neon ");
+    }
+
+    if (   sysctlbyname("hw.optional.neon_hpfp", &ret, &size, NULL, 0) == 0
+        && ret == 1) {
+        strcat(features, "neon_hpfp ");
+    }
+
+    if (   sysctlbyname("hw.optional.arm.FEAT_DotProd", &ret, &size, NULL, 0) == 0
+        && ret == 1) {
+        strcat(features, "FEAT_DotProd ");
+    }
+
+    snprintf(buffer, len, "%s", features);
+    strterm(buffer, len);
+    
+    return true;
+
+#endif
     
     return false;
 }
