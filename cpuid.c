@@ -5,7 +5,7 @@
 #include "cpuinfo.h"
 
 int main (void) {
-    char buffer[1024];
+    char buffer[2048];
 
     if (get_cpu_vendor(buffer, sizeof(buffer))) {
         printf("Vendor:   %s\n", buffer);

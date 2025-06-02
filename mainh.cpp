@@ -77,7 +77,7 @@ int main (int argc, char *argv[]) {
     // -------------------------------------------------------------------------
     // Identify the CPU
 
-    char buffer[256];
+    char buffer[2048];
 
     if (get_cpu_vendor(buffer, sizeof(buffer))) {
         cout << (char*) buffer << " ";
