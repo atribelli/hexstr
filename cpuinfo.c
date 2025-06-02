@@ -890,7 +890,7 @@ static bool get_cpu_part_macos(char *buffer, size_t len) {
 
 #elif defined(__aarch64__)                  // 64-bit ARM
 
-    int64_t cores  = 0;
+    int64_t cores = 0;
 
     size_t size = sizeof(cores);
     if (sysctlbyname("machdep.cpu.core_count", &cores,  &size, NULL, 0) != 0)
@@ -970,6 +970,7 @@ static bool get_cpu_part_linux(char *buffer, size_t len) {
         }
         
         // There is no explicit count field, so count off processors
+        fseek(fp, 0, SEEK_SET);
         do {
             entry = get_proc_cpuinfo_entry(fp, "processor");
             if (entry != NULL) {
@@ -981,11 +982,17 @@ static bool get_cpu_part_linux(char *buffer, size_t len) {
         }
         while (true);
 
-        if (arch > 0 && part > 0 && cores > 0) {
-            snprintf(buffer, len, "v%ld %s %ld-Core",
-                                  arch, arminfo[part].name, cores + 1);
+        if (arch > 0 && cores > 0) {
+            if (part > 0) {
+                snprintf(buffer, len, "v%ld %s %ld-Core",
+                         arch, arminfo[part].name, cores + 1);
+            }
+            else {
+                snprintf(buffer, len, "v%ld %ld-Core",
+                         arch, cores + 1);
+            }
             strterm(buffer, len);
-            
+
             success = true;
         };
 
