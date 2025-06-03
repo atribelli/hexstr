@@ -701,7 +701,7 @@ static bool get_cpu_vendor_intel(char *buffer, size_t len) {
 
 #endif
 
-#if defined(__arm__) || defined(__aarch64__) // ARM 32- or 64-bit
+#if defined(__arm__) || defined(__aarch64__) || defined(_M_ARM64) // ARM 32- or 64-bit
 
 static bool get_cpu_vendor_arm(char *buffer, size_t len) {
 
