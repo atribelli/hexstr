@@ -1115,21 +1115,13 @@ static bool get_cpu_part_macos(char *buffer, size_t len) {
     snprintf(buffer, len, "Family %lld Model %lld",
                           family, model);
     strterm(buffer, len);
-
-#elif defined(__aarch64__)                  // 64-bit ARM
-
-    int64_t cores = 0;
-
-    size_t size = sizeof(cores);
-    if (sysctlbyname("machdep.cpu.core_count", &cores,  &size, NULL, 0) != 0)
-        return false;
-    
-    snprintf(buffer, len, "%lld-Core", cores);
-    strterm(buffer, len);
-
-#endif
     
     return true;
+
+#elif defined(__aarch64__)                  // 64-bit ARM
+#endif
+
+    return false;
 }
 
 #endif
@@ -1149,8 +1141,7 @@ static bool get_cpu_part_linux(char *buffer, size_t len) {
 #if defined(__x86_64__)                     // 64-bit Intel macOS or Linux
 
         long family = -1,
-             model  = -1,
-             cores  = -1;
+             model  = -1;
         
         entry = get_proc_cpuinfo_entry(fp, "cpu family");
         if (entry != NULL) {
@@ -1161,15 +1152,10 @@ static bool get_cpu_part_linux(char *buffer, size_t len) {
         if (entry != NULL) {
             model = strtol(entry, NULL, 10);
         }
-
-        entry = get_proc_cpuinfo_entry(fp, "cpu cores");
-        if (entry != NULL) {
-            cores = strtol(entry, NULL, 10);
-        }
         
-        if (family > 0 && model > 0 && cores > 0) {
-            snprintf(buffer, len, "Family %ld Model %ld %ld-Core",
-                                  family, model, cores);
+        if (family > 0 && model > 0) {
+            snprintf(buffer, len, "Family %ld Model %ld",
+                                  family, model);
             strterm(buffer, len);
 
             success = true;
@@ -1250,7 +1236,7 @@ static bool get_cpu_cores_windows(char *buffer, size_t len) {
     SYSTEM_INFO info;
 
     GetNativeSystemInfo(&info);
-    snprintf(buffer, len, "%d-cores", info.dwNumberOfProcessors);
+    snprintf(buffer, len, "%d-core", info.dwNumberOfProcessors);
     strterm(buffer, len);
 
     return true;
