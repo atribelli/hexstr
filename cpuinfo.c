@@ -27,7 +27,7 @@
 
 #endif
 
-#if defined(_M_ARM64)                       // Windows ARM
+#if defined(_WIN64)                         // Windows
 
 #include <windows.h>
 
