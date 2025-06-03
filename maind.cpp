@@ -99,26 +99,31 @@ int main (int argc, char *argv[]) {
     bool success = false;
 
     if (get_cpu_vendor(buffer, sizeof(buffer))) {
-        cout << (char*) buffer << " ";
+        cout << (char *) buffer << " ";
         success = true;
     }
     
     if (get_cpu_brand(buffer, sizeof(buffer))) {
-        cout << (char*) buffer << " ";
+        cout << (char *) buffer << " ";
         success = true;
     }
     
     if (get_cpu_part(buffer, sizeof(buffer))) {
-        cout << (char*) buffer << " ";
+        cout << (char *) buffer << " ";
         success = true;
     }
     
+    if (get_cpu_cores(buffer, sizeof(buffer))) {
+        cout << (char *) buffer << " ";
+        success = true;
+    }
+
     if (success) {
         cout << endl;
     }
     
     if (get_cpu_features(buffer, sizeof(buffer))) {
-        cout << (char*) buffer << endl;
+        cout << (char *) buffer << endl;
     }
 
     // -------------------------------------------------------------------------

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "cpuinfo.h"
+#include "midr.h"
 
 // Intel CPUID support
 
@@ -52,10 +53,10 @@
 // https://github.com/bp0/armids
 
 static struct {
-    int  imp;
-    int  part;
-    char *name;
-} arminfo[] = {
+    int         imp;
+    int         part;
+    const char *name;
+} part_info[] = {
     0x41,    -1, "ARM",                     // Implementor
     0x41, 0x810, "ARM810",                  // Parts ...
     0x41, 0x920, "ARM920",
@@ -172,13 +173,44 @@ static struct {
     -1,   -1,    ""                         // Mark end of table
 };
 
-static int get_arm_imp_part_entry(int imp, int part) {
+static struct {
+    int         arch;
+    const char *name;
+} arch_info[] = {
+    0b0001, "Armv4",
+    0b0010, "Armv4T",
+    0b0011, "Armv5",
+    0b0100, "Armv5T",
+    0b0101, "Armv5TE",
+    0b0110, "Armv5TEJ",
+    0b0111, "Armv6",
+    -1,     ""                              // Mark end of table
+};
+
+static int get_part_index(int imp, int part) {
     int i = 0;
 
     // Loop until end of table
-    while (arminfo[i].imp != -1 || arminfo[i].part != -1) {
+    while (part_info[i].imp != -1 || part_info[i].part != -1) {
         // Return if we have a match
-        if (arminfo[i].imp == imp && arminfo[i].part == part) {
+        if (part_info[i].imp == imp && part_info[i].part == part) {
+            return i;
+        }
+
+        ++i;
+    }
+
+    // Indicate no match
+    return -1;
+}
+
+static int get_arch_index(int arch) {
+    int i = 0;
+
+    // Loop until end of table
+    while (arch_info[i].arch != -1) {
+        // Return if we have a match
+        if (arch_info[i].arch == arch) {
             return i;
         }
 
@@ -669,6 +701,33 @@ static bool get_cpu_vendor_intel(char *buffer, size_t len) {
 
 #endif
 
+#if defined(__arm__) || defined(__aarch64__) // ARM 32- or 64-bit
+
+static bool get_cpu_vendor_arm(char *buffer, size_t len) {
+
+#if defined(__aarch64__)                    // 64-bit ARM
+
+    uint64_t midr = get_midr();
+    
+    if (midr != 0) {
+        int imp = (midr >> 24) & 0xff;
+        
+        imp = get_part_index(imp, -1);
+        if (imp > -1) {
+            snprintf(buffer, len, "%s", part_info[imp].name);
+            strterm(buffer, len);
+            
+            return true;
+        }
+    }
+    
+#endif
+    
+    return false;
+}
+
+#endif
+
 
 
 #if defined(_WIN64)                         // Windows
@@ -679,6 +738,9 @@ static bool get_cpu_vendor_windows(char *buffer, size_t len) {
     return get_cpu_vendor_intel(buffer, len);
 
 #elif defined(_M_ARM64)                     // 64-bit ARM
+
+    return get_cpu_vendor_arm(buffer, len);
+
 #endif
     
     return false;
@@ -726,16 +788,21 @@ static bool get_cpu_vendor_linux(char *buffer, size_t len) {
 
 #elif defined(__arm__) || defined(__aarch64__) // ARM 32- or 64-bit
 
-        entry = get_proc_cpuinfo_entry(fp, "CPU implementer");
-        if (entry != NULL) {
-            int imp = strtol(entry, NULL, 16);
-            
-            imp = get_arm_imp_part_entry(imp, -1);
-            if (imp > -1) {
-                snprintf(buffer, len, "%s", arminfo[imp].name);
-                strterm(buffer, len);
+        if (get_cpu_vendor_arm(buffer, len)) {
+            success = true;
+        }
+        else {
+            entry = get_proc_cpuinfo_entry(fp, "CPU implementer");
+            if (entry != NULL) {
+                int imp = strtol(entry, NULL, 16);
                 
-                success = true;
+                imp = get_part_index(imp, -1);
+                if (imp > -1) {
+                    snprintf(buffer, len, "%s", part_info[imp].name);
+                    strterm(buffer, len);
+                    
+                    success = true;
+                }
             }
         }
 
@@ -769,263 +836,6 @@ bool get_cpu_vendor(char *buffer, size_t len) {
 #elif defined(__linux__)                    // Linux
     
     return get_cpu_vendor_linux(buffer, len);
-    
-#endif
-
-    return false;
-}
-
-
-
-// -------------------------------------------------------------------------
-// Identify the CPU part
-
-static uint32_t get_cpu_family(uint32_t fam, uint32_t exfam) {
-    if (fam == 15)
-        fam += exfam;
-    
-    return fam;
-}
-
-static uint32_t get_cpu_model(uint32_t mod, uint32_t exmod, uint32_t fam) {
-    if (fam == 6 || fam == 15)
-        mod += exmod << 4;
-
-    return mod;
-}
-
-#if defined(_M_X64) || defined(__x86_64__)  // 64-bit Intel
-
-static bool get_cpu_part_intel(char *buffer, size_t len) {
-    if (len < 32)
-        return false;
-    
-    // Check level of CPUID support
-    if (! has_cpuid_level(0, 1))
-        return false;
-
-    // Check features
-
-    // EAX 1 ECX 0
-    if (! get_cpu_functionality(1, 0))
-        return false;
-
-    int fam   = (cpu.eax >>  8) & 0x0f;
-    int exfam = (cpu.eax >> 20) & 0xff;
-    int mod   = (cpu.eax >>  4) & 0x0f;
-    int exmod = (cpu.eax >> 16) & 0x0f;
-    
-    snprintf(buffer, len, "Family %d Model %d",
-                          get_cpu_family (fam, exfam),
-                          get_cpu_model  (mod, exmod, fam));
-    strterm(buffer, len);
-    
-    return true;
-}
-
-#endif
-
-
-
-#if defined(_WIN64)                         // Windows
-
-static bool get_cpu_part_windows(char *buffer, size_t len) {
-#if defined(_M_X64)                         // 64-bit Intel
-    
-    return get_cpu_part_intel(buffer, len);
-
-#elif defined(_M_ARM64)                     // 64-bit ARM
-
-    SYSTEM_INFO info;
-
-    GetNativeSystemInfo(&info);
-    if (info.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_ARM64) {
-        char arch[16] = "";
-        
-        if (IsProcessorFeaturePresent(PF_ARM_V8_INSTRUCTIONS_AVAILABLE)) {
-            strcpy(arch, "v8 ");
-        }
-        
-        snprintf(buffer, len, "ARM %s%d-cores",
-                              arch, info.dwNumberOfProcessors);
-        strterm(buffer, len);
-
-        return true;
-    }
-
-#endif
-    
-    return false;
-}
-
-#endif
-
-
-
-#if defined(__APPLE__)                      // macOS
-
-static bool get_cpu_part_macos(char *buffer, size_t len) {
-
-#if defined(__x86_64__)                     // 64-bit Intel
-
-    int64_t family = 0,
-            model  = 0,
-            cores  = 0;
-
-    size_t size = sizeof(family);
-    if (sysctlbyname("machdep.cpu.family",     &family, &size, NULL, 0) != 0)
-        return false;
-
-    size = sizeof(model);
-    if (sysctlbyname("machdep.cpu.model",      &model,  &size, NULL, 0) != 0)
-        return false;
-
-    size = sizeof(cores);
-    if (sysctlbyname("machdep.cpu.core_count", &cores,  &size, NULL, 0) != 0)
-        return false;
-    
-    snprintf(buffer, len, "Family %lld Model %lld %lld-Core",
-                          family, model, cores);
-    strterm(buffer, len);
-
-#elif defined(__aarch64__)                  // 64-bit ARM
-
-    int64_t cores = 0;
-
-    size_t size = sizeof(cores);
-    if (sysctlbyname("machdep.cpu.core_count", &cores,  &size, NULL, 0) != 0)
-        return false;
-    
-    snprintf(buffer, len, "%lld-Core", cores);
-    strterm(buffer, len);
-
-#endif
-    
-    return true;
-}
-
-#endif
-
-
-
-#if defined(__linux__)                      // Linux
-
-static bool get_cpu_part_linux(char *buffer, size_t len) {
-    bool  success = false;
-    FILE *fp      = fopen("/proc/cpuinfo", "r");
-    
-    if (fp != NULL) {
-        char *entry;
-
-#if defined(__x86_64__)                     // 64-bit Intel macOS or Linux
-
-        long family = -1,
-             model  = -1,
-             cores  = -1;
-        
-        entry = get_proc_cpuinfo_entry(fp, "cpu family");
-        if (entry != NULL) {
-            family = strtol(entry, NULL, 10);
-        }
-
-        entry = get_proc_cpuinfo_entry(fp, "model");
-        if (entry != NULL) {
-            model = strtol(entry, NULL, 10);
-        }
-
-        entry = get_proc_cpuinfo_entry(fp, "cpu cores");
-        if (entry != NULL) {
-            cores = strtol(entry, NULL, 10);
-        }
-        
-        if (family > 0 && model > 0 && cores > 0) {
-            snprintf(buffer, len, "Family %ld Model %ld %ld-Core",
-                                  family, model, cores);
-            strterm(buffer, len);
-
-            success = true;
-        }
-
-#elif defined(__arm__) || defined(__aarch64__) // ARM 32- or 64-bit
-        
-        long arch  = -1,
-             imp   = -1,
-             part  = -1,
-             cores = -1;
-
-        entry = get_proc_cpuinfo_entry(fp, "CPU architecture");
-        if (entry != NULL) {
-            arch = strtol(entry, NULL, 10);
-        }
-
-        entry = get_proc_cpuinfo_entry(fp, "CPU implementer");
-        if (entry != NULL) {
-            imp = strtol(entry, NULL, 16);
-            
-            entry = get_proc_cpuinfo_entry(fp, "CPU part");
-            if (entry != NULL) {
-                part = strtol(entry, NULL, 16);
-                part = get_arm_imp_part_entry(imp, part);
-            }
-        }
-        
-        // There is no explicit count field, so count off processors
-        fseek(fp, 0, SEEK_SET);
-        do {
-            entry = get_proc_cpuinfo_entry(fp, "processor");
-            if (entry != NULL) {
-                cores = strtol(entry, NULL, 10);
-            }
-            else {
-                break;
-            }
-        }
-        while (true);
-
-        if (arch > 0 && cores > 0) {
-            if (part > 0) {
-                snprintf(buffer, len, "v%ld %s %ld-Core",
-                         arch, arminfo[part].name, cores + 1);
-            }
-            else {
-                snprintf(buffer, len, "v%ld %ld-Core",
-                         arch, cores + 1);
-            }
-            strterm(buffer, len);
-
-            success = true;
-        };
-
-#endif
-
-        fclose(fp);
-    }
-    
-    return success;
-}
-
-#endif
-
-
-
-bool get_cpu_part(char *buffer, size_t len) {
-    // Verify buffer
-    if (buffer == NULL || len == 0)
-        return false;
-    
-    buffer[0] = 0;
-
-#if defined(_WIN64)                         // Windows
-    
-    return get_cpu_part_windows(buffer, len);
-    
-#elif defined(__APPLE__)                    // macOS
-    
-    return get_cpu_part_macos(buffer, len);
-    
-#elif defined(__linux__)                    // Linux
-    
-    return get_cpu_part_linux(buffer, len);
     
 #endif
 
@@ -1168,6 +978,379 @@ bool get_cpu_brand(char *buffer, size_t len) {
 #elif defined(__linux__)                    // Linux
     
     return get_cpu_brand_linux(buffer, len);
+    
+#endif
+
+    return false;
+}
+
+
+
+// -------------------------------------------------------------------------
+// Identify the CPU part
+
+static uint32_t get_cpu_family(uint32_t fam, uint32_t exfam) {
+    if (fam == 15)
+        fam += exfam;
+    
+    return fam;
+}
+
+static uint32_t get_cpu_model(uint32_t mod, uint32_t exmod, uint32_t fam) {
+    if (fam == 6 || fam == 15)
+        mod += exmod << 4;
+
+    return mod;
+}
+
+#if defined(_M_X64) || defined(__x86_64__)  // 64-bit Intel
+
+static bool get_cpu_part_intel(char *buffer, size_t len) {
+    if (len < 32)
+        return false;
+    
+    // Check level of CPUID support
+    if (! has_cpuid_level(0, 1))
+        return false;
+
+    // Check features
+
+    // EAX 1 ECX 0
+    if (! get_cpu_functionality(1, 0))
+        return false;
+
+    int fam   = (cpu.eax >>  8) & 0x0f;
+    int exfam = (cpu.eax >> 20) & 0xff;
+    int mod   = (cpu.eax >>  4) & 0x0f;
+    int exmod = (cpu.eax >> 16) & 0x0f;
+    
+    snprintf(buffer, len, "Family %d Model %d",
+                          get_cpu_family (fam, exfam),
+                          get_cpu_model  (mod, exmod, fam));
+    strterm(buffer, len);
+    
+    return true;
+}
+
+#endif
+
+
+#if defined(__arm__) || defined(__aarch64__) // ARM 32- or 64-bit
+
+static bool get_cpu_part_arm(char *buffer, size_t len) {
+
+#if defined(__aarch64__)                    // 64-bit ARM
+    
+    uint64_t midr = get_midr();
+    
+    if (midr != 0) {
+        int imp  = (midr >> 24) & 0x00ff;
+        int part = (midr >>  4) & 0x0fff;
+        
+        part = get_part_index(imp, part);
+        if (part > -1) {
+            snprintf(buffer, len, "%s", part_info[part].name);
+            strterm(buffer, len);
+            
+            return true;
+        }
+    }
+
+#endif
+
+    return false;
+}
+
+#endif
+
+
+
+#if defined(_WIN64)                         // Windows
+
+static bool get_cpu_part_windows(char *buffer, size_t len) {
+#if defined(_M_X64)                         // 64-bit Intel
+    
+    return get_cpu_part_intel(buffer, len);
+
+#elif defined(_M_ARM64)                     // 64-bit ARM
+    
+    SYSTEM_INFO info;
+
+    GetNativeSystemInfo(&info);
+    if (info.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_ARM64) {
+        bool v8 = IsProcessorFeaturePresent(PF_ARM_V8_INSTRUCTIONS_AVAILABLE);
+        
+        snprintf(buffer, len, "ARM %s", v8 ? "v8" : "");
+        strterm(buffer, len);
+
+        return true;
+    }
+
+#endif
+    
+    return false;
+}
+
+#endif
+
+
+
+#if defined(__APPLE__)                      // macOS
+
+static bool get_cpu_part_macos(char *buffer, size_t len) {
+
+#if defined(__x86_64__)                     // 64-bit Intel
+
+    int64_t family = 0,
+            model  = 0;
+
+    size_t size = sizeof(family);
+    if (sysctlbyname("machdep.cpu.family",     &family, &size, NULL, 0) != 0)
+        return false;
+
+    size = sizeof(model);
+    if (sysctlbyname("machdep.cpu.model",      &model,  &size, NULL, 0) != 0)
+        return false;
+    
+    snprintf(buffer, len, "Family %lld Model %lld",
+                          family, model);
+    strterm(buffer, len);
+
+#elif defined(__aarch64__)                  // 64-bit ARM
+
+    int64_t cores = 0;
+
+    size_t size = sizeof(cores);
+    if (sysctlbyname("machdep.cpu.core_count", &cores,  &size, NULL, 0) != 0)
+        return false;
+    
+    snprintf(buffer, len, "%lld-Core", cores);
+    strterm(buffer, len);
+
+#endif
+    
+    return true;
+}
+
+#endif
+
+
+
+#if defined(__linux__)                      // Linux
+
+static bool get_cpu_part_linux(char *buffer, size_t len) {
+
+    bool  success = false;
+    FILE *fp      = fopen("/proc/cpuinfo", "r");
+    
+    if (fp != NULL) {
+        char *entry;
+
+#if defined(__x86_64__)                     // 64-bit Intel macOS or Linux
+
+        long family = -1,
+             model  = -1,
+             cores  = -1;
+        
+        entry = get_proc_cpuinfo_entry(fp, "cpu family");
+        if (entry != NULL) {
+            family = strtol(entry, NULL, 10);
+        }
+
+        entry = get_proc_cpuinfo_entry(fp, "model");
+        if (entry != NULL) {
+            model = strtol(entry, NULL, 10);
+        }
+
+        entry = get_proc_cpuinfo_entry(fp, "cpu cores");
+        if (entry != NULL) {
+            cores = strtol(entry, NULL, 10);
+        }
+        
+        if (family > 0 && model > 0 && cores > 0) {
+            snprintf(buffer, len, "Family %ld Model %ld %ld-Core",
+                                  family, model, cores);
+            strterm(buffer, len);
+
+            success = true;
+        }
+
+#elif defined(__arm__) || defined(__aarch64__) // ARM 32- or 64-bit
+        
+        long imp   = -1,
+             part  = -1;
+
+        if (get_cpu_part_arm(buffer, len)) {
+            success = true;
+        }
+        else {
+            entry = get_proc_cpuinfo_entry(fp, "CPU implementer");
+            if (entry != NULL) {
+                imp = strtol(entry, NULL, 16);
+                
+                entry = get_proc_cpuinfo_entry(fp, "CPU part");
+                if (entry != NULL) {
+                    part = strtol(entry, NULL, 16);
+                    part = get_part_index(imp, part);
+                }
+            }
+        }
+        
+        if (part > 0) {
+            snprintf(buffer, len, "%s%", part_info[part].name);
+            strterm(buffer, len);
+
+            success = true;
+        };
+
+#endif
+
+        fclose(fp);
+    }
+    
+    return success;
+}
+
+#endif
+
+
+
+bool get_cpu_part(char *buffer, size_t len) {
+    // Verify buffer
+    if (buffer == NULL || len == 0)
+        return false;
+    
+    buffer[0] = 0;
+
+#if defined(_WIN64)                         // Windows
+    
+    return get_cpu_part_windows(buffer, len);
+    
+#elif defined(__APPLE__)                    // macOS
+    
+    return get_cpu_part_macos(buffer, len);
+    
+#elif defined(__linux__)                    // Linux
+    
+    return get_cpu_part_linux(buffer, len);
+    
+#endif
+
+    return false;
+}
+
+
+
+// -------------------------------------------------------------------------
+// Identify the CPU cores
+
+#if defined(_WIN64)                         // Windows
+
+static bool get_cpu_cores_windows(char *buffer, size_t len) {
+    SYSTEM_INFO info;
+
+    GetNativeSystemInfo(&info);
+    snprintf(buffer, len, "%d-cores", info.dwNumberOfProcessors);
+    strterm(buffer, len);
+
+    return true;
+}
+
+#endif
+
+
+
+#if defined(__APPLE__)                      // macOS
+
+static bool get_cpu_cores_macos(char *buffer, size_t len) {
+    int64_t cores = 0;
+
+    size_t size = sizeof(cores);
+    if (sysctlbyname("machdep.cpu.core_count", &cores,  &size, NULL, 0) != 0)
+        return false;
+    
+    snprintf(buffer, len, "%lld-Core", cores);
+    strterm(buffer, len);
+    
+    return true;
+}
+
+#endif
+
+
+
+#if defined(__linux__)                      // Linux
+
+static bool get_cpu_cores_linux(char *buffer, size_t len) {
+
+    bool  success = false;
+    FILE *fp      = fopen("/proc/cpuinfo", "r");
+    
+    if (fp != NULL) {
+        long  cores = 0;
+        char *entry;
+
+#if defined(__x86_64__)                     // 64-bit Intel macOS or Linux
+
+        entry = get_proc_cpuinfo_entry(fp, "cpu cores");
+        if (entry != NULL) {
+            cores = strtol(entry, NULL, 10);
+        }
+
+#elif defined(__arm__) || defined(__aarch64__) // ARM 32- or 64-bit
+
+        // There is no explicit count field, so count off processors
+        do {
+            entry = get_proc_cpuinfo_entry(fp, "processor");
+            if (entry != NULL) {
+                cores = strtol(entry, NULL, 10);
+            }
+            else {
+                break;
+            }
+        } while (true);
+
+        if (cores > 0) {
+            ++cores;
+        };
+
+#endif
+        
+        if (cores > 0) {
+            snprintf(buffer, len, "%ld-Core", cores);
+            strterm(buffer, len);
+
+            success = true;
+        }
+
+        fclose(fp);
+    }
+    
+    return success;
+}
+
+#endif
+
+
+
+bool get_cpu_cores(char *buffer, size_t len) {
+    // Verify buffer
+    if (buffer == NULL || len == 0)
+        return false;
+    
+    buffer[0] = 0;
+
+#if defined(_WIN64)                         // Windows
+    
+    return get_cpu_cores_windows(buffer, len);
+    
+#elif defined(__APPLE__)                    // macOS
+    
+    return get_cpu_cores_macos(buffer, len);
+    
+#elif defined(__linux__)                    // Linux
+    
+    return get_cpu_cores_linux(buffer, len);
     
 #endif
 
