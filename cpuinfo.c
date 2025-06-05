@@ -1112,7 +1112,6 @@ bool get_cpu_cores(char *buffer, size_t len) {
                 cores = value + 1;
             }
             else {
-                cores = -1;
                 break;
             }
         } while (true);
