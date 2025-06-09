@@ -67,17 +67,21 @@
 
             .macro  computeBytes, i
             cmp     x2, #9                  // Determine conversion
-            addgt   x2, x2, #'A' - 10       // Convert value to A-F
-            addls   x2, x2, #'0'            // Convert value to 0-9
-            strb    w2, [x0, #\i]           // Output the digit
+            bls     ls\@
+            add     x2, x2, #'A' - 10       // Convert value to A-F
+ls\@:       bgt     gt\@
+            add     x2, x2, #'0'            // Convert value to 0-9
+gt\@:       strb    w2, [x0, #\i]           // Output the digit
             .endm
 
             .macro  computeWords
             lsl     x4, x4, #8              // Shift the current digits
             cmp     x2, #9                  // Determine conversion
-            addgt   x2, x2, #'A' - 10       // Convert value to A-F
-            addls   x2, x2, #'0'            // Convert value to 0-9
-            orr     x4, x4, x2              // Output the digit
+            bls     ls\@
+            add     x2, x2, #'A' - 10       // Convert value to A-F
+ls\@:       bgt     gt\@
+            add     x2, x2, #'0'            // Convert value to 0-9
+gt\@:       orr     x4, x4, x2              // Output the digit
             .endm
 
             // The nextDigit macro will be used by the code below
