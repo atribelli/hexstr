@@ -66,22 +66,22 @@ use_bytes   equ    1
             macro
             computeBytes $i
             mov     x5, x2
-            add     x2, x2, #'0'            // Convert value to 0-9
-            add     x5, x5, #'A' - 10       // Convert value to A-F
-            cmp     x2, #'9'                // Verify 0-9
-            csel    x2, x2, x5, ls          // Switch to A-F
-            strb    w2, [x0, #$i]           // Output the digit
+            add     x2, x2, #'0'            ; Convert value to 0-9
+            add     x5, x5, #'A' - 10       ; Convert value to A-F
+            cmp     x2, #'9'                ; Verify 0-9
+            csel    x2, x2, x5, ls          ; Switch to A-F
+            strb    w2, [x0, #$i]           ; Output the digit
             mend
 
             macro
             computeWords
-            lsl     x4, x4, #8              // Shift the current digits
+            lsl     x4, x4, #8              ; Shift the current digits
             mov     x5, x2
-            add     x2, x2, #'0'            // Convert value to 0-9
-            add     x5, x5, #'A' - 10       // Convert value to A-F
-            cmp     x2, #'9'                // Verify 0-9
-            csel    x2, x2, x5, ls          // Switch to A-F
-            orr     x4, x4, x2              // Output the digit
+            add     x2, x2, #'0'            ; Convert value to 0-9
+            add     x5, x5, #'A' - 10       ; Convert value to A-F
+            cmp     x2, #'9'                ; Verify 0-9
+            csel    x2, x2, x5, ls          ; Switch to A-F
+            orr     x4, x4, x2              ; Output the digit
             mend
 
             ; The nextDigit macro will be used by the code below
