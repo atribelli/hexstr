@@ -23,10 +23,10 @@ timer.h - Determine elapsed time.
 cpuid.c - Displays cpu info.  
 cpuinfo.h  
 cpuinfo.c - Gets CPU info and features.  
-midr.s - Get the MIDR register (gas).  
-midr-a32.s  
+midr.h  
+midr-a32.s - Get the MIDR register (gas).  
 midr-a64.s  
-midr.asm - Get the MIDR register (armasm64).  
+midr.asm - (armasm64).  
 maind.cpp  
 mainh.cpp - Timing code.  
 hexstr.h - Prototypes for hex string conversion functions.  
