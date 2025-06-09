@@ -7,8 +7,8 @@
 ;     u8ToHexStr    8-bit  byte
 ;     u4ToHexStr    4-bit  nibble
 
-            area    .text, code
-            align   4
+            area    .text, code, align=4    ; align is a power of 2 exponent
+            align   4                       ; align is a power of 2 value
 
 ;------------------------------------------------------------------------------
 ; Comment/uncomment these symbol definition to control implementation
@@ -22,16 +22,16 @@ use_table   equ    1
 use_bytes   equ    1
 
             if      :def: use_table
-;            print  "Conditional Assembly: Lookup digits"
+            info    0, "Conditional Assembly: Lookup digits"
             else
-;            print  "Conditional Assembly: Compute digits"
+            info    0, "Conditional Assembly: Compute digits"
             endif
             if      :def: use_bytes
-;            print  "Conditional Assembly: Output bytes"
+            info    0, "Conditional Assembly: Output bytes"
             else
-;            print  "Conditional Assembly: Output words"
+            info    0, "Conditional Assembly: Output words"
             endif
-
+            
 ;-----------------------------------------------------------------------------
 ; Macros with the code for different implementations.
 ; Table vs compute, bytes vs words.
@@ -66,18 +66,22 @@ use_bytes   equ    1
             macro
             computeBytes $i
             cmp     x2, #9                  ; Determine conversion
-            addgt   x2, x2, #'A' - 10       ; Convert value to A-F
-            addls   x2, x2, #'0'            ; Convert value to 0-9
-            strb    w2, [x0, #$i]           ; Output the digit
+            bls     %f1
+            add     x2, x2, #'A' - 10       ; Convert value to A-F
+1           bgt     %f2
+            add     x2, x2, #'0'            ; Convert value to 0-9
+2           strb    w2, [x0, #$i]           ; Output the digit
             mend
 
             macro
             computeWords
             lsl     x4, x4, #8              ; Shift the current digits
             cmp     x2, #9                  ; Determine conversion
-            addgt   x2, x2, #'A' - 10       ; Convert value to A-F
-            addls   x2, x2, #'0'            ; Convert value to 0-9
-            orr     x4, x4, x2              ; Output the digit
+            bls     %f1
+            add     x2, x2, #'A' - 10       ; Convert value to A-F
+1           bgt     %f2
+            add     x2, x2, #'0'            ; Convert value to 0-9
+2           orr     x4, x4, x2              ; Output the digit
             mend
 
             ; The nextDigit macro will be used by the code below
@@ -110,7 +114,7 @@ use_bytes   equ    1
 ; We are going to start at the high order nibble
 ; and work down one at a time to the low order nibble.
 
-            align   8
+            align   16
             global  u64ToHexStr
 u64ToHexStr
             if      :def: use_table
@@ -194,7 +198,7 @@ u64ToHexStr
 
 ;------------------------------------------------------------------------------
 
-            align   8
+            align   16
             global  u32ToHexStr
 u32ToHexStr
             if      :def: use_table
@@ -242,7 +246,7 @@ u32ToHexStr
 
 ;------------------------------------------------------------------------------
 
-            align   8
+            align   16
             global  u16ToHexStr
 u16ToHexStr
             if      :def: use_table
@@ -275,7 +279,7 @@ u16ToHexStr
 ;------------------------------------------------------------------------------
 ; For the smaller sizes its better to just use table lookup and byte output
 
-            align   8
+            align   16
             global  u8ToHexStr
 u8ToHexStr
             adr     x2, lookup              ; Get ascii from lookup table
@@ -292,7 +296,7 @@ u8ToHexStr
 
 ;------------------------------------------------------------------------------
 
-            align   8
+            align   16
             global  u4ToHexStr
 u4ToHexStr
             adr     x2, lookup              ; Get ascii from lookup table
@@ -304,7 +308,7 @@ u4ToHexStr
 
 ;------------------------------------------------------------------------------
 
-            align   8
+            align   16
 
 lookup      dcb     "0123456789ABCDEF"
 

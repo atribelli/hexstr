@@ -8,8 +8,8 @@
 ;     u8ToHexStr    8-bit  byte
 ;     u4ToHexStr    4-bit  nibble
 
-            area    .text, code
-            align   4
+            area    .text, code, align=4    ; align is a power of 2 exponent
+            align   4                       ; align is a power of 2 value
 
 ;------------------------------------------------------------------------------
 ; Convert value to zero terminated hex string.
@@ -19,7 +19,7 @@
 ; Return:
 ;     X0  Buffer
 
-            align   8
+            align   16
             global  u64ToHexStr
 u64ToHexStr
             rev     x1, x1                  ; Reverse bytes to match string
@@ -47,7 +47,7 @@ u64ToHexStr
 
 ;------------------------------------------------------------------------------
 
-            align   8
+            align   16
             global  u32ToHexStr
 u32ToHexStr
             rev     w1, w1                  ; Reverse bytes to match string
@@ -75,7 +75,7 @@ u32ToHexStr
 
 ;------------------------------------------------------------------------------
 
-            align   8
+            align   16
             global  u16ToHexStr
 u16ToHexStr
             rev     w1, w1                  ; Reverse bytes to match string
@@ -105,7 +105,7 @@ u16ToHexStr
 ;------------------------------------------------------------------------------
 ; For the smaller sizes its better to just use table lookup and byte output
 
-            align   8
+            align   16
             global  u8ToHexStr
 u8ToHexStr
             adr     x2, lookup              ; Get ascii from lookup table
@@ -122,7 +122,7 @@ u8ToHexStr
 
 ;------------------------------------------------------------------------------
 
-            align   8
+            align   16
             global  u4ToHexStr
 u4ToHexStr
             adr     x2, lookup              ; Get ascii from lookup table
@@ -134,7 +134,7 @@ u4ToHexStr
 
 ;------------------------------------------------------------------------------
 
-            align   8
+            align   16
 
 lookup      dcb     "0123456789ABCDEF"
 
