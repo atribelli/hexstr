@@ -23,6 +23,10 @@ timer.h - Determine elapsed time.
 cpuid.c - Displays cpu info.  
 cpuinfo.h  
 cpuinfo.c - Gets CPU info and features.  
+midr.s - Get the MIDR register (gas).  
+midr-a32.s  
+midr-a64.s  
+midr.asm - Get the MIDR register (armasm64).  
 maind.cpp  
 mainh.cpp - Timing code.  
 hexstr.h - Prototypes for hex string conversion functions.  
@@ -33,10 +37,12 @@ hexstr-x64.s - x86-64 assembly implementation (gas).
 hexstr-sse.s - SSE implementation (gas).  
 hexstr-avx.s - AVX implementation (gas).  
 hexstr-a64.s - AArch64 assembly implementation.  
-hexstr-neon64.s - AArch64 NEON implementation.  
+hexstr-a64.s - (armasm64).  
+hexstr-neon64.s - AArch64 NEON implementation (gas).  
+hexstr-neon.asm - (armasm64).  
 hexstr-a32.s - ARMv7-A assembly implementation.  
 hexstr-neon32.s - ARMv7-A NEON implementation.  
-hexstr-thumb.s - ARMv7-A thumb implementation.  
+hexstr-t32.s - ARMv7-A thumb implementation.  
 hexstr-x64.asm - x86-64 assembly implementation (masm).  
 hexstr-sse.asm - SSE implementation (masm).  
 hexstr-avx.asm - AVX implementation (masm).  
@@ -56,8 +62,8 @@ nextdigits.asm - An include file to share macross and data (masm).
 ## Building  
 make - Detects OS and architecture and builds intel, arm64, or arm32 code.  
 intel: cpuid, hexstr-c, hexstr-intrin, hexstr-x64, hexstr-sse, hexstr-avx, decstr-c, decstr-intrin, decstr-x64, decstr-sse, and decstr-avx.  
-arm64: hexstr-a64c, hexstr-a64intrin, hexstr-a64asm, and hexstr-a64neon.  
-arm32: hexstr-a32c, hexstr-a32intrin, hexstr-a32asm, hexstr-a32neon, and hexstr-thumb.  
+arm64: a64cpuid, hexstr-a64c, hexstr-a64asm, hexstr-a64intrin, and hexstr-a64neon.  
+arm32: a32cpuid, hexstr-a32c, hexstr-a32asm, hexstr-a32intrin, hexstr-a32neon, and hexstr-t32asm.  
 make clean - Remove executable and build files.  
 nmake /f hexstr-intel.mak - Create all executables for Windows x86_64.  
 intel: cpuid.exe, hexstr-c.exe, hexstr-intrin.exe, hexstr-x64.exe, hexstr-sse.exe, hexstr-avx.exe, decstr-c.exe, decstr-intrin.exe, decstr-x64.exe, decstr-sse.exe, and decstr-avx.exe.  
