@@ -10,9 +10,6 @@
             area    .text, code
             align   4
 
-            global  _u64ToHexStr, _u32ToHexStr, _u16ToHexStr
-            global  _u8ToHexStr, _u4ToHexStr
-
 ;------------------------------------------------------------------------------
 ; Comment/uncomment these symbol definition to control implementation
 ; of code.
@@ -21,19 +18,19 @@
 ; use_bytes allows individuals bytes to be output rather than collected
 ; in a register to be output as a word later.
 
-            .set    use_table, 1
-            .set    use_bytes, 1
+use_table   equ    1
+use_bytes   equ    1
 
-            .ifdef  use_table
-            .print  "Conditional Assembly: Lookup digits"
-            .else
-            .print  "Conditional Assembly: Compute digits"
-            .endif
-            .ifdef  use_bytes
-            .print  "Conditional Assembly: Output bytes"
-            .else
-            .print  "Conditional Assembly: Output words"
-            .endif
+            if      :def: use_table
+;            print  "Conditional Assembly: Lookup digits"
+            else
+;            print  "Conditional Assembly: Compute digits"
+            endif
+            if      :def: use_bytes
+;            print  "Conditional Assembly: Output bytes"
+            else
+;            print  "Conditional Assembly: Output words"
+            endif
 
 ;-----------------------------------------------------------------------------
 ; Macros with the code for different implementations.
@@ -53,49 +50,54 @@
             ; These macros are not used directly,
             ; one of them will be used in nextDigit
 
-            .macro  tableBytes, i
+            macro
+            tableBytes $i
             ldrb    w2, [x3, x2]            ; Get the next digit
-            strb    w2, [x0, #\i]           ; Output the digit
-            .endm
+            strb    w2, [x0, #$i]           ; Output the digit
+            mend
 
-            .macro  tableWords
+            macro
+            tableWords
             lsl     x4, x4, #8              ; Shift the current digits
             ldrb    w2, [x3, x2]            ; Get the next digit
             orr     x4, x4, x2
-            .endm
+            mend
 
-            .macro  computeBytes, i
+            macro
+            computeBytes $i
             cmp     x2, #9                  ; Determine conversion
             addgt   x2, x2, #'A' - 10       ; Convert value to A-F
             addls   x2, x2, #'0'            ; Convert value to 0-9
-            strb    w2, [x0, #\i]           ; Output the digit
-            .endm
+            strb    w2, [x0, #$i]           ; Output the digit
+            mend
 
-            .macro  computeWords
+            macro
+            computeWords
             lsl     x4, x4, #8              ; Shift the current digits
             cmp     x2, #9                  ; Determine conversion
             addgt   x2, x2, #'A' - 10       ; Convert value to A-F
             addls   x2, x2, #'0'            ; Convert value to 0-9
             orr     x4, x4, x2              ; Output the digit
-            .endm
+            mend
 
             ; The nextDigit macro will be used by the code below
 
-            .macro  nextDigit, i
-            .ifdef  use_table
-                .ifdef  use_bytes
-                    tableBytes \i
-                .else
+            macro
+            nextDigit $i
+            if      :def: use_table
+                if  :def: use_bytes
+                    tableBytes $i
+                else
                     tableWords
-                .endif
-            .else
-                .ifdef  use_bytes
-                    computeBytes \i
-                .else
+                endif
+            else
+                if  :def: use_bytes
+                    computeBytes $i
+                else
                     computeWords
-                .endif
-            .endif
-            .endm
+                endif
+            endif
+            mend
 
 ;------------------------------------------------------------------------------
 ; Convert value to zero terminated hex string.
@@ -108,11 +110,12 @@
 ; We are going to start at the high order nibble
 ; and work down one at a time to the low order nibble.
 
-            align   16
-_u64ToHexStr:
-            .ifdef  use_table
+            align   8
+            global  u64ToHexStr
+u64ToHexStr
+            if      :def: use_table
             adr     x3, lookup              ; Converts binary to char
-            .endif
+            endif
 
             lsr     x2, x1, #60             ; Get the nibble to convert
             nextDigit 0
@@ -145,10 +148,10 @@ _u64ToHexStr:
             and     w2, w2, #0xf
             nextDigit 7
 
-            .ifndef use_bytes
+            if      :lnot: :def: use_bytes
             rev     x4, x4                  ; Output HO digits
             str     x4, [x0]
-            .endif
+            endif
 
             lsr     w2, w1, #28
             and     x2, x2, #0xf
@@ -181,21 +184,22 @@ _u64ToHexStr:
             and     x2, x1, #0xf
             nextDigit 15
 
-            .ifndef use_bytes
+            if      :lnot: :def: use_bytes
             rev     x4, x4                  ; Output LO digits
             str     x4, [x0, #8]
-            .endif
+            endif
 
             strb    wzr, [x0, #16]          ; Zero terminte string
             ret
 
 ;------------------------------------------------------------------------------
 
-            align   16
-_u32ToHexStr:
-            .ifdef  use_table
+            align   8
+            global  u32ToHexStr
+u32ToHexStr
+            if      :def: use_table
             adr     x3, lookup              ; Converts binary to char
-            .endif
+            endif
 
             lsr     w2, w1, #28
             and     x2, x2, #0xf
@@ -228,21 +232,22 @@ _u32ToHexStr:
             and     x2, x1, #0xf
             nextDigit 7
 
-            .ifndef use_bytes
+            if      :lnot: :def: use_bytes
             rev     x4, x4                  ; Output digits
             str     x4, [x0]
-            .endif
+            endif
 
             strb    wzr, [x0, #8]           ; Zero terminte string
             ret
 
 ;------------------------------------------------------------------------------
 
-            align   16
-_u16ToHexStr:
-            .ifdef  use_table
+            align   8
+            global  u16ToHexStr
+u16ToHexStr
+            if      :def: use_table
             adr     x3, lookup              ; Converts binary to char
-            .endif
+            endif
 
             lsr     w2, w1, #12
             and     x2, x2, #0xf
@@ -259,10 +264,10 @@ _u16ToHexStr:
             and     x2, x1, #0xf
             nextDigit 3
 
-            .ifndef use_bytes
+            if      :lnot: :def: use_bytes
             rev     w4, w4                  ; Output digits
             str     w4, [x0]
-            .endif
+            endif
 
             strb    wzr, [x0, #4]           ; Zero terminte string
             ret
@@ -270,8 +275,9 @@ _u16ToHexStr:
 ;------------------------------------------------------------------------------
 ; For the smaller sizes its better to just use table lookup and byte output
 
-            align   16
-_u8ToHexStr:
+            align   8
+            global  u8ToHexStr
+u8ToHexStr
             adr     x2, lookup              ; Get ascii from lookup table
 
             lsr     x3, x1, #4              ; Position desired nibble
@@ -286,8 +292,9 @@ _u8ToHexStr:
 
 ;------------------------------------------------------------------------------
 
-            align   16
-_u4ToHexStr:
+            align   8
+            global  u4ToHexStr
+u4ToHexStr
             adr     x2, lookup              ; Get ascii from lookup table
 
             and     x3, x1, #0x0f           ; Create an index
@@ -297,7 +304,8 @@ _u4ToHexStr:
 
 ;------------------------------------------------------------------------------
 
-            align   16
+            align   8
 
-lookup:     ascii   "0123456789ABCDEF"
+lookup      dcb     "0123456789ABCDEF"
 
+            end
