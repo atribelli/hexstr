@@ -1349,6 +1349,10 @@ bool get_cpu_features(char *buffer, size_t len) {
         strcat(features, "NEON ");
     }
 
+    if (IsProcessorFeaturePresent(PF_ARM_V82_DP_INSTRUCTIONS_AVAILABLE)) {
+        strcat(features, "DP ");
+    }
+
     strncpy(buffer, features, len);
     strterm(buffer, len);
 
