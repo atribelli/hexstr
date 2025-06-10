@@ -1048,9 +1048,25 @@ bool get_cpu_part(char *buffer, size_t len) {
     if (info.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_ARM64) {
         bool v8 = IsProcessorFeaturePresent(PF_ARM_V8_INSTRUCTIONS_AVAILABLE);
         
-        return snprintf(buffer, len, "ARM %s", v8 ? "v8" : "") > 0;
+        return snprintf(buffer, len, "%s", "Armv8") > 0;
     }
     
+#elif defined(__APPLE__)                    // macOS
+    
+    static char features[2048] = "";
+    int64_t     ret            = 0;
+    size_t      size           = sizeof(ret);
+    
+    if (   sysctlbyname("hw.optional.arm.FEAT_SME", &ret, &size, NULL, 0) == 0
+        && ret == 1) {
+        return snprintf(buffer, len, "%s", "Armv9") > 0;
+    }
+    else
+        if (   sysctlbyname("hw.optional.arm64", &ret, &size, NULL, 0) == 0
+             && ret == 1) {
+        return snprintf(buffer, len, "%s", "Armv8") > 0;
+    }
+
 #elif LINUX_64
 
     // https://developer.arm.com/documentation/ddi0601/2025-03/AArch64-Registers/MIDR-EL1--Main-ID-Register
@@ -1204,6 +1220,52 @@ bool get_cpu_features_intel(char *buffer, size_t len) {
 
 
 
+#if LINUX_64
+
+bool get_cpu_features_arm(char *buffer, size_t len) {
+    static char features[2048] = "";
+
+    // mrs x0, ID_AA64ISAR0_EL1
+    // Dot Product, bits [47:44]
+    uint64_t isar0 = get_isar0();
+    if ((isar0 >> 44) & 0x0f) {
+        strcat(features, "DP ");
+    }
+
+    // mrs x0, ID_AA64ISAR1_EL1
+    //  Complex number addition and multiplication,, bits [19:16]
+    uint64_t isar1 = get_isar1();
+    if ((isar1 >> 16) & 0x0f) {
+        strcat(features, "FCMA ");
+    }
+
+    // mrs x0, ID_AA64PFR0_EL1
+    //  Scalable Vector Extension, bits [35:32]
+    //  Advanced SIMD,             bits [23:20]
+    //  Floating Point,            bits [19:16]
+    uint64_t pfr0 = get_pfr0();
+    if ((pfr0 >> 32) & 0x0f) {
+        strcat(features, "SVE ");
+    }
+    if ((pfr0 >> 20) & 0x0f) {
+        strcat(features, "AdvSIMD ");
+    }
+    if ((pfr0 >> 16) & 0x0f) {
+        strcat(features, "FP ");
+    }
+
+    bufterm(features);
+    
+    strncpy(buffer, features, len);
+    strterm(buffer, len);
+
+    return true;
+}
+
+#endif
+
+
+
 #if defined(__APPLE__)                      // macOS
 
 static bool get_cpu_core_decription_entry(char *features,
@@ -1293,7 +1355,7 @@ bool get_cpu_features(char *buffer, size_t len) {
     return true;
 
 #elif defined(__APPLE__)                    // macOS
-    
+
     static char features[2048] = "";
     int64_t     ret            = 0;
     size_t      size           = sizeof(ret);
@@ -1307,16 +1369,27 @@ bool get_cpu_features(char *buffer, size_t len) {
         }
     }
     
-    size = sizeof(ret);
     if (   sysctlbyname("hw.optional.neon", &ret, &size, NULL, 0) == 0
         && ret == 1) {
         strcat(features, "NEON ");
     }
+    if (   sysctlbyname("hw.optional.arm.FEAT_SME", &ret, &size, NULL, 0) == 0
+        && ret == 1) {
+        strcat(features, "SME ");
+    }
+    if (   sysctlbyname("hw.optional.arm.FEAT_SME2", &ret, &size, NULL, 0) == 0
+        && ret == 1) {
+        strcat(features, "SME2 ");
+    }
 
     return snprintf(buffer, len, "%s", features) > 0;
     
-#elif defined(__linux__)                    // Linux
+#elif LINUX_64
+
+    return get_cpu_features_arm(buffer, len);
     
+#elif LINUX_32
+
     bool  success = false;
     FILE *fp      = fopen("/proc/cpuinfo", "r");
 
