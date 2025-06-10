@@ -16,6 +16,15 @@ This is a testbed for experimenting with SIMD implementations. For comparison pu
 It's less interesting than hex, but I've added Intel SSE/AVX2 decimal string creation.
 
 ## Files  
+
+.mak and .asm files are Windows specific.  
+makefile and .s files are macOS and Linux specific.  
+.h, .c, and .cpp files are uaually cross-platform.  
+"a32" in name indicates 32-bit ARM.  
+"a64" indicates 64-bit ARM.  
+"t32" indicates ARM Thumb code.  
+"x64" indicates X86_64.  
+
 makefile - macOS and Linux based builds.  
 hexstr-intel.mak - Windows based builds.  
 hexstr-arm.mak  
