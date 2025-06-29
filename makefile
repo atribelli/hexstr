@@ -159,8 +159,8 @@ maind.o: decstr.h maind.cpp
 
 arm64: a64cpuid hexstr-a64c hexstr-a64asm hexstr-a64intrin hexstr-a64neon
 
-a64cpuid: a64cpuinfo.o midr-a64.o a64cpuid.o
-	gcc $(optdb) -o a64cpuid $(optc) a64cpuinfo.o midr-a64.o a64cpuid.o
+a64cpuid: a64cpuinfo.o a64midr.o a64cpuid.o
+	gcc $(optdb) -o a64cpuid $(optc) a64cpuinfo.o a64midr.o a64cpuid.o
 
 a64cpuid.o: cpuinfo.h cpuid.c
 	gcc $(optdb) -o a64cpuid.o -c $(optc) cpuid.c
@@ -169,10 +169,10 @@ a64cpuinfo.o: cpuinfo.h midr.h cpuinfo.c
 	gcc $(optdb) -o a64cpuinfo.o -c $(optc) cpuinfo.c
 
 a64midr.o: midr.h midr-a64.s
-	as $(optdb) -o midr-a64.o $(optas) midr-a64.s
+	as $(optdb) -o a64midr.o $(optas) midr-a64.s
 
-hexstr-a64c: a64mainh.o a64cpuinfo.o midr-a64.o a64hexstr-test.o hexstr-a64c.o
-	g++ $(optdb) -o hexstr-a64c $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o midr-a64.o a64hexstr-test.o hexstr-a64c.o
+hexstr-a64c: a64mainh.o a64cpuinfo.o a64midr.o a64hexstr-test.o hexstr-a64c.o
+	g++ $(optdb) -o hexstr-a64c $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o a64midr.o a64hexstr-test.o hexstr-a64c.o
 
 a64mainh.o: hexstr.h mainh.cpp
 	g++ $(optdb) -o a64mainh.o -c $(optcpp) $(optarch) mainh.cpp
@@ -183,20 +183,20 @@ a64hexstr-test.o: hexstr.h hexstr-test.cpp
 hexstr-a64c.o: hexstr.h hexstr.c
 	gcc $(optdb) -o hexstr-a64c.o -c $(optc) $(optarch) hexstr.c
 
-hexstr-a64asm: a64mainh.o a64cpuinfo.o midr-a64.o a64hexstr-test.o hexstr-a64asm.o
-	g++ $(optdb) -o hexstr-a64asm $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o midr-a64.o a64hexstr-test.o hexstr-a64asm.o
+hexstr-a64asm: a64mainh.o a64cpuinfo.o a64midr.o a64hexstr-test.o hexstr-a64asm.o
+	g++ $(optdb) -o hexstr-a64asm $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o a64midr.o a64hexstr-test.o hexstr-a64asm.o
 
 hexstr-a64asm.o: hexstr-a64.s
 	as $(optdb) -o hexstr-a64asm.o $(optas) hexstr-a64.s
 
-hexstr-a64intrin: a64mainh.o a64cpuinfo.o midr-a64.o a64hexstr-test.o hexstr-a64intrin.o
-	g++ $(optdb) -o hexstr-a64intrin $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o midr-a64.o a64hexstr-test.o hexstr-a64intrin.o
+hexstr-a64intrin: a64mainh.o a64cpuinfo.o a64midr.o a64hexstr-test.o hexstr-a64intrin.o
+	g++ $(optdb) -o hexstr-a64intrin $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o a64midr.o a64hexstr-test.o hexstr-a64intrin.o
 
 hexstr-a64intrin.o: hexstr.h hexstr.c
 	gcc $(optdb) -o hexstr-a64intrin.o -c $(optc) $(optarch) -DUSE_SIMD hexstr.c
 
-hexstr-a64neon: a64mainh.o a64cpuinfo.o midr-a64.o a64hexstr-test.o hexstr-a64neon.o
-	g++ $(optdb) -o hexstr-a64neon $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o midr-a64.o a64hexstr-test.o hexstr-a64neon.o
+hexstr-a64neon: a64mainh.o a64cpuinfo.o a64midr.o a64hexstr-test.o hexstr-a64neon.o
+	g++ $(optdb) -o hexstr-a64neon $(optcpp) $(optarch) a64mainh.o a64cpuinfo.o a64midr.o a64hexstr-test.o hexstr-a64neon.o
 
 hexstr-a64neon.o: hexstr-neon64.s
 	as $(optdb) -o hexstr-a64neon.o $(optas) hexstr-neon64.s
