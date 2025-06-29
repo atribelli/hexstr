@@ -72,13 +72,13 @@ all: $(target)
 intel: cpuid hexstr-c hexstr-x64 hexstr-intrin hexstr-sse hexstr-avx decstr-c decstr-intrin decstr-x64 decstr-sse decstr-avx
 
 cpuid: cpuinfo.o cpuid.o
-	gcc $(optdb) -o cpuid $(optc) cpuinfo.o cpuid.o
+	gcc $(optdb) -o cpuid $(optc) $(optarch) cpuinfo.o cpuid.o
 
 cpuid.o: cpuinfo.h cpuid.c
-	gcc $(optdb) -o cpuid.o -c $(optc) cpuid.c
+	gcc $(optdb) -o cpuid.o -c $(optc) $(optarch) cpuid.c
 
 cpuinfo.o: cpuinfo.h cpuinfo.c
-	gcc $(optdb) -c $(optc) cpuinfo.c
+	gcc $(optdb) -c $(optc) $(optarch) cpuinfo.c
 
 hexstr-c: mainh.o cpuinfo.o hexstr-test.o hexstr-c.o
 	g++ $(optdb) -o hexstr-c $(optcpp) $(optarch) mainh.o cpuinfo.o hexstr-test.o hexstr-c.o
@@ -160,13 +160,13 @@ maind.o: decstr.h maind.cpp
 arm64: a64cpuid hexstr-a64c hexstr-a64asm hexstr-a64intrin hexstr-a64neon
 
 a64cpuid: a64cpuinfo.o a64midr.o a64cpuid.o
-	gcc $(optdb) -o a64cpuid $(optc) a64cpuinfo.o a64midr.o a64cpuid.o
+	gcc $(optdb) -o a64cpuid $(optc) $(optarch) a64cpuinfo.o a64midr.o a64cpuid.o
 
 a64cpuid.o: cpuinfo.h cpuid.c
-	gcc $(optdb) -o a64cpuid.o -c $(optc) cpuid.c
+	gcc $(optdb) -o a64cpuid.o -c $(optc) $(optarch) cpuid.c
 
 a64cpuinfo.o: cpuinfo.h midr.h cpuinfo.c
-	gcc $(optdb) -o a64cpuinfo.o -c $(optc) cpuinfo.c
+	gcc $(optdb) -o a64cpuinfo.o -c $(optc) $(optarch) cpuinfo.c
 
 a64midr.o: midr.h midr-a64.s
 	as $(optdb) -o a64midr.o $(optas) midr-a64.s
@@ -212,13 +212,13 @@ a64maind.o: hexstr.h maind.cpp
 arm32: a32cpuid hexstr-a32c hexstr-a32asm hexstr-a32intrin hexstr-a32neon hexstr-t32asm
 
 a32cpuid: a32cpuinfo.o a32cpuid.o
-	gcc $(optdb) -o a32cpuid $(optc) a32cpuinfo.o a32cpuid.o
+	gcc $(optdb) -o a32cpuid $(optc) $(optarch) a32cpuinfo.o a32cpuid.o
 
 a32cpuid.o: cpuinfo.h cpuid.c
-	gcc $(optdb) -o a32cpuid.o -c $(optc) cpuid.c
+	gcc $(optdb) -o a32cpuid.o -c $(optc) $(optarch) cpuid.c
 
 a32cpuinfo.o: cpuinfo.h cpuinfo.c
-	gcc $(optdb) -o a32cpuinfo.o -c $(optc) cpuinfo.c
+	gcc $(optdb) -o a32cpuinfo.o -c $(optc) $(optarch) cpuinfo.c
 
 hexstr-a32c: a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-a32c.o
 	g++ $(optdb) -o hexstr-a32c $(optcpp) $(optarch) a32main.o a32cpuinfo.o a32hexstr-test.o hexstr-a32c.o
