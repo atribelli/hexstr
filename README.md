@@ -224,6 +224,11 @@ $ ./hexstr-a32neon
 u64:      20.01 ns
 u32:      18.60 ns
 ...
+$ ./hexstr-t32asm
+...
+u64:      90.09 ns
+u32:      58.39 ns
+...
 ```
 
 ## To-do
